@@ -28,11 +28,10 @@ def is_in_regex(l, cont):
         if re.search(i, cont):
             matches = True
             how_many += 1
-        if how_many > 1:
+        if (how_many > 1) or (len(re.findall("https?", cont)) > 1):
             matches = False
             break
     return matches
-
 
 # Here you can modify the bot's prefix and description and whether it sends help in direct messages or not.
 TOKEN = open("token.txt","r").read()
