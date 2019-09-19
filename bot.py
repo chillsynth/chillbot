@@ -16,7 +16,7 @@ mod_roles = ["Moderator","Crew"]
 prfx = 'cs.'
 
 # Automod settings
-nr_links_regex = ["^https://soundcloud\.com/.+/.+", "http://musicsthehangup\.com", "^https://(www\.)?youtube.com/.+", "^https://youtu\.be/.+", "^https://.+\.bandcamp\.com/.+/.+", "^https://open\.spotify\.com/.+/.+"]
+nr_links_regex = ["https://soundcloud\.com/.+/.+", "http://musicsthehangup\.com", "https://(www\.)?youtube.com/.+", "https://youtu\.be/.+", "https://.+\.bandcamp\.com/.+/.+", "https://open\.spotify\.com/.+/.+"]
 
 # Automod functions
 def is_in_regex(l, cont):
