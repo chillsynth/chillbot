@@ -9,7 +9,7 @@ class Platforms:
 	"youtube": "https?:\/\/(www\.)?youtu(\.be|be\.com)\/.+",
 	"bandcamp": "https?:\/\/.+\.bandcamp\.com\/.+\/.+",
 	"spotify": "https?:\/\/open\.spotify\.com\/.+\/.+",
-	"itunes": "https?:\/\/music\.apple\.com\/us\/album\/.+\/\d+",
+	"itunes": "https?:\/\/music\.apple\.com\/[a-z]{2}\/album\/.+\/\d+",
 	"mthu": "https?:\/\/musicsthehangup\.com",
 	"distrokid": "https?:\/\/distrokid\.com/hyperfollow\/.+\/.+",
 	"fanlink": "https?:\/\/fanlink\.to\/.+",
