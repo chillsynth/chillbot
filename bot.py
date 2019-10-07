@@ -16,7 +16,7 @@ mod_roles = ["Moderator","Crew"]
 prfx = 'cs.'
 
 # Here you can modify the bot's prefix and description and whether it sends help in direct messages or not.
-TOKEN = open("token.txt","r").read()
+TOKEN = open("token.txt","r").read().strip()
 bot = Bot(description="ChillBot by npgy#2000", command_prefix=prfx, pm_help = True)
 
 # Bot on ready event
