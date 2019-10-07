@@ -1,9 +1,9 @@
-# These are the dependencies. The bot depends on these to function, hence the name. Please do not change these unle$
+# These are the dependencies. The bot depends on these to function, hence the name. Please do not change these
 import discord
 import json
 import os
 import asyncio
-import re
+from platforms import *
 from discord.ext.commands import Bot
 from discord.ext import commands
 from discord.utils import get
@@ -14,24 +14,6 @@ mod_roles = ["Moderator","Crew"]
 
 # Prefix functions
 prfx = 'cs.'
-
-# Automod settings
-nr_links_regex = ["https://soundcloud\.com/.+/.+", "http://musicsthehangup\.com", "https://(www\.)?youtube.com/.+", "https://youtu\.be/.+", "https://.+\.bandcamp\.com/.+/.+", "https://open\.spotify\.com/.+/.+"]
-
-# Automod functions
-def is_in_regex(l, cont):
-    matches = False
-    how_many = 0
-    if type(l) is not list:
-        l = list(l)
-    for i in l:
-        if re.search(i, cont):
-            matches = True
-            how_many += 1
-        if (how_many > 1) or (len(re.findall("https?", cont)) > 1):
-            matches = False
-            break
-    return matches
 
 # Here you can modify the bot's prefix and description and whether it sends help in direct messages or not.
 TOKEN = open("token.txt","r").read()
@@ -61,7 +43,7 @@ async def on_message(msg):
 
     # Code for moderating #new-releases
     if chnl.name == "new-releases":
-        if not is_in_regex(nr_links_regex, cont):
+        if not Platforms.one_pltfrm_in_str(cont):
             await msg.delete()
 
     # Allow commands to be processed from the message if nothing was run here
