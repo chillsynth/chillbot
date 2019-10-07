@@ -13,7 +13,7 @@ class Platforms:
 	"mthu": "https?:\/\/musicsthehangup\.com",
 	"distrokid": "https?:\/\/distrokid\.com/hyperfollow\/.+\/.+",
 	"fanlink": "https?:\/\/fanlink\.to\/.+",
-	"lnkto": "https?://.+\.lnk\.to/.+",
+	"lnkto": "https?:\/\/.+\.lnk\.to\/.+",
 	"audius": "https?:\/\/audius\.co\/.+\/.+",
 	"smarturl": "https?:\/\/(smarturl\.it|hyperurl\.co)\/.+",
 	}
