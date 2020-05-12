@@ -2,6 +2,7 @@ from discord.ext.commands import Bot as BotBase
 from discord.ext.commands import CommandNotFound
 from discord.ext.commands.errors import *
 from discord.ext.commands import command
+from discord.ext.commands import is_owner
 from discord import Game
 from glob import glob
 from asyncio import sleep
@@ -9,7 +10,7 @@ import logging
 
 PREFIX = "cs."
 OWNER_IDS = [265156354522611712]
-COGS = [path.split("\\")[-1][:-3] for path in glob("../cogs/*.py")]
+COGS = [path.split("/")[2][:-3] for path in glob("lib/cogs/*.py")]
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -104,6 +105,12 @@ class Bot(BotBase):
 
 
 bot = Bot()
+
+@bot.command()
+@is_owner()
+async def stop(ctx):
+	await ctx.send("Bot has stopped completely.")
+	await bot.close()
 
 @bot.command()
 async def load(ctx, extension):

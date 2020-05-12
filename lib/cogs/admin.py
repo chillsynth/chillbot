@@ -14,11 +14,5 @@ class CogExt(Cog, name=COG_NAME):
 		await self.bot.statchnl.send(f"`{COG_NAME}` cog loaded")
 
 
-	@command()
-	@is_owner()
-	async def stop(self, ctx):
-		await self.bot.close()
-
-
 def setup(bot):
 	bot.add_cog(CogExt(bot))
