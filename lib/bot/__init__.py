@@ -9,7 +9,7 @@ import logging
 
 PREFIX = "cs."
 OWNER_IDS = [265156354522611712]
-COGS = [path.split("\\")[-1][:-3] for path in glob("./lib/cogs/*.py")]
+COGS = [path.split("\\")[-1][:-3] for path in glob("../cogs/*.py")]
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
