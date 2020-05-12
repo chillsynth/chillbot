@@ -1,0 +1,6 @@
+*.db
+*.db-journal
+__pycache__
+token.0
+*.sublime-project
+*.sublime-workspace
