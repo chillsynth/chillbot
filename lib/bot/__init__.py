@@ -4,6 +4,7 @@ from discord.ext.commands.errors import *
 from discord.ext.commands import command
 from discord.ext.commands import is_owner
 from discord import Game
+import discord
 from glob import glob
 from asyncio import sleep
 import logging
@@ -11,12 +12,6 @@ import logging
 PREFIX = "cs."
 OWNER_IDS = [265156354522611712]
 COGS = [path.split("/")[2][:-3] for path in glob("lib/cogs/*.py")]
-
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
 
 class Ready():
 	def __init__(self):
@@ -34,7 +29,7 @@ class Bot(BotBase):
 		self.PREFIX = PREFIX
 		self.ready = False
 		self.cogs_ready = Ready()
-		super().__init__(command_prefix=PREFIX, owner_ids=OWNER_IDS)
+		super().__init__(command_prefix=PREFIX, owner_ids=OWNER_IDS, intents=discord.Intents().all())
 
 	def setup(self):
 		for cog in COGS:
