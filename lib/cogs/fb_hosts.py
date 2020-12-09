@@ -46,7 +46,7 @@ class CogExt(Cog, name=COG_NAME):
 		await self.fb_chnl.set_permissions(self.online_role, read_messages=enable, connect=enable)
 		await self.vc_chnl.set_permissions(groovy, view_channel=not enable, connect=not enable)
 		await radio_control.set_permissions(groovy, read_messages=not enable)
-		await radio_vc.set_permissions(groovy, view_channel=not enable)
+		await radio_vc.set_permissions(groovy, view_channel=not enable, speak=not enable)
 
 		await ctx.send("Feedback mode is now set to `"+str(enable)+"`")
 
