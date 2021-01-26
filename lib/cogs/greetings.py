@@ -35,9 +35,10 @@ class CogExt(Cog, name=COG_NAME):
 	@Cog.listener()
 	async def on_member_update(self, before, after):
 		if not before.bot:
-			if before.roles != after.roles:
+			if before.pending == True and after.pending == False:
 				if self.online_role not in before.roles:
-					await sleep(5)
+					await sleep(0.2)
+					await after.add_roles(after.guild.get_role(631849829026496543), reason="User verification")
 					await self.lounge_chnl.send("Hello "+before.mention+" and welcome to ChillSynth!\n"+
 					"Please remember to get your roles in <#583960398961573919> (scroll to the top for Music Producer!)\n"+
 					"And as always, **GIVE** <#488440534449258527> before you **ASK** for it!")
