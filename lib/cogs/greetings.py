@@ -40,7 +40,7 @@ class CogExt(Cog, name=COG_NAME):
 					await sleep(0.2)
 					await after.add_roles(after.guild.get_role(631849829026496543), reason="User verification")
 					await self.lounge_chnl.send("Hello "+before.mention+" and welcome to ChillSynth!\n"+
-					"Please remember to get your roles in <#583960398961573919> (scroll to the top for Music Producer!)\n"+
+					"Please remember to get your roles in <#583960398961573919>\n"+
 					"And as always, **GIVE** <#488440534449258527> before you **ASK** for it!")
 
 
