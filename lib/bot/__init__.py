@@ -93,6 +93,8 @@ class Bot(BotBase):
 			await ctx.send("Sorry, you don't have permission to run this command.")
 		elif isinstance(exc, MissingRole):
 			await ctx.send("Sorry, you don't have permission to run this command.")
+		elif isinstance(exc, MissingRequiredArgument):
+			await ctx.send(exc)
 		elif hasattr(exc, "original"):
 			raise exc.original
 		else:
