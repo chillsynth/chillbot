@@ -33,6 +33,5 @@ class CogExt(Cog, name=COG_NAME):
 	async def fb_size(self, ctx):
 	    await ctx.send("There are `"+str(len(self.fb_chnl.members))+"` people in the feedback stream!")
 
-
 def setup(bot):
 	bot.add_cog(CogExt(bot))
