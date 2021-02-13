@@ -26,7 +26,6 @@ class CogExt(Cog, name=COG_NAME):
 	def get_vars(self):
 		if not self.vars_loaded:
 			try:
-				self.vc_chnl = self.bot.get_channel(543600804180000788)
 				self.event_strm = self.bot.get_channel(691009984418414602)
 				self.event_chat = self.bot.get_channel(807035168404930572)
 				self.online_role = get(self.bot.guild.roles, name='Online')
@@ -38,19 +37,11 @@ class CogExt(Cog, name=COG_NAME):
 	@command(aliases=['em'])
 	@has_role('Event Host')
 	async def eventmode(self, ctx, enable: bool):
-		#Get Groovy member object
-		groovy = self.bot.guild.get_member(234395307759108106)
-		radio_control = self.bot.get_channel(633456834484895765)
-		radio_vc = self.bot.get_channel(497637943494836225)
-
 		# Set permissions
 		await self.event_strm.set_permissions(self.online_role, read_messages=enable, connect=enable)
-		await self.event_chat.set_permissions(self.online_role, read_messages=enable)
-		await self.vc_chnl.set_permissions(groovy, view_channel=not enable, connect=not enable)
-		await radio_control.set_permissions(groovy, read_messages=not enable)
-		await radio_vc.set_permissions(groovy, view_channel=not enable, speak=not enable)
+		await self.event_chat.set_permissions(self.online_role, send_messages=enable)
 
-		await ctx.send("Feedback mode is now set to `"+str(enable)+"`")
+		await ctx.send("Event mode is now set to `"+str(enable)+"`")
 
 	@command()
 	@has_role('Event Host')
