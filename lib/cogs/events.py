@@ -59,6 +59,11 @@ class CogExt(Cog, name=COG_NAME):
 				await member.move_to(self.vc_chnl)
 		await ctx.send("Moved all members to <#543600804180000788>!")
 
+	@command()
+	@has_role('Event Host')
+	async def eventsize(self, ctx):
+	    await ctx.send("There are `"+str(len(self.event_strm.members))+"` people in the event stream!")
+
 
 def setup(bot):
 	bot.add_cog(CogExt(bot))
