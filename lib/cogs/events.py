@@ -28,6 +28,7 @@ class CogExt(Cog, name=COG_NAME):
 			try:
 				self.event_strm = self.bot.get_channel(691009984418414602)
 				self.event_chat = self.bot.get_channel(807035168404930572)
+				self.vc_chnl = self.bot.get_channel(543600804180000788)
 				self.online_role = get(self.bot.guild.roles, name='Online')
 				self.vars_loaded = True
 			except AttributeError:
