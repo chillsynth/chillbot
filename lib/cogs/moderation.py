@@ -2,17 +2,23 @@
 from discord import PermissionOverwrite
 from discord.ext.commands import *
 from discord.utils import get
+import discord
 
 # Other dependencies
 from lib.helpers import url
 
 COG_NAME = "Moderation"
-MODS = ('Moderator', 'Lowkey Mod', 'Crew')
+MODS = ('**', 'Trial Mod')
 
 def is_mod(ctx):
 	for role in ctx.author.roles:
 		if role.id in MODS:
 			return True
+
+def name_is_untypable(member):
+	username_untypable = not all(ord(c) < 128 for c in member.name[0:4])
+	nickname_untypable = not all(ord(c) < 128 for c in member.display_name[0:4])
+	return username_untypable and nickname_untypable
 
 class CogExt(Cog, name=COG_NAME):
 	def __init__(self, bot):
@@ -44,11 +50,20 @@ class CogExt(Cog, name=COG_NAME):
 						await msg.delete()
 
 
+	@Cog.listener()
+	async def on_member_join(self, member):
+		if name_is_untypable(member):
+			await member.edit(nick="rule 11", reason="rule 11")
+
+	@Cog.listener()
+	async def on_member_update(self, before, after):
+		if name_is_untypable(after):
+			await after.edit(nick="rule 11", reason="rule 11")
+
 	@command()
 	@has_any_role(*MODS)
-	async def secret(self, ctx):
-		await ctx.send("poopy butthole!")
-
+	async def is_untypable(self, ctx, member: discord.Member):
+		await ctx.send(str(name_is_untypable(member)))
 
 def setup(bot):
 	bot.add_cog(CogExt(bot))
