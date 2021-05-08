@@ -8,11 +8,16 @@ import discord
 from lib.helpers import url
 
 COG_NAME = "Moderation"
-MODS = ('**', 'Trial Mod')
+MODS = (806166163905839154, 835932346099695616)
 
 def is_mod(ctx):
 	for role in ctx.author.roles:
 		if role.id in MODS:
+			return True
+
+def is_dj(ctx):
+	for role in ctx.author.roles:
+		if role.id == 703643374544093224:
 			return True
 
 def name_is_untypable(member):
@@ -42,6 +47,14 @@ class CogExt(Cog, name=COG_NAME):
 			if chnl.name == "new-releases":
 				if not url.validate(cont): # If the URL is invalid or there are more than one in the message
 					await msg.delete()     # Then delete the message
+
+			if not is_dj(msg):
+				# radio-control moderation
+				if chnl.id == 840610850670641222:
+					allowed_cmds = [".np", ".pp10", "-q", "-queue", "-np"]
+					if cont not in allowed_cmds and not cont.startswith(("-p", "-play")):
+						await msg.delete()
+
 
 			# Code for moderating contest submissions
 			if chnl.name == "contest-submissions":
