@@ -50,6 +50,7 @@ class CogExt(Cog, name=COG_NAME):
 						await msg.delete()
 
 
+	# Commands and events for nickname moderation
 	@Cog.listener()
 	async def on_member_join(self, member):
 		if name_is_untypable(member):
@@ -64,6 +65,24 @@ class CogExt(Cog, name=COG_NAME):
 	@has_any_role(*MODS)
 	async def is_untypable(self, ctx, member: discord.Member):
 		await ctx.send(str(name_is_untypable(member)))
+
+	# Event to restrict access to voice chat text
+	@Cog.listener()
+	async def on_voice_state_update(self, member, before, after):
+		vcs = [543600804180000788, 497637943494836225, 836019956377845790]
+		chat_chnl = self.bot.get_channel(800792669978361877)
+		blank_chnl = self.bot.get_channel(619320260591484943)
+		before_channel = before.channel
+		after_channel = after.channel
+
+		if before_channel == None:
+			before_channel = blank_chnl
+		if after_channel == None:
+			after_channel = blank_chnl
+		if (before_channel.id not in vcs) and (after_channel.id in vcs):
+			await chat_chnl.set_permissions(member, send_messages=True)
+		if (before_channel.id in vcs) and (after_channel.id not in vcs):
+			await chat_chnl.set_permissions(member, overwrite=None)
 
 def setup(bot):
 	bot.add_cog(CogExt(bot))
