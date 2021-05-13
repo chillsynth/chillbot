@@ -55,13 +55,15 @@ class Bot(BotBase):
 			self.statchnl = self.get_channel(517654463280840704)
 			self.guild = self.get_guild(488405912659427358)
 
+			await self.change_presence(activity=discord.Streaming(name="ChillSynth FM", url="https://twitch.tv/chillsynth_fm"))
+
 			while not self.cogs_ready.all_ready():
 				await sleep(0.5)
 
 			print(f'\nLogged in as {self.user.name} (ID:{self.user.id})')
 			print('--------')
 			print('Created by npgy#2000\n')
-			await self.change_presence(activity=Game(name='Corporate Shillwave'))
+
 
 			self.ready = True
 			print("Bot Ready.")
