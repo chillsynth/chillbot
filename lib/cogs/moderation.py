@@ -21,9 +21,19 @@ def is_dj(ctx):
 			return True
 
 def name_is_untypable(member):
-	username_untypable = not all(ord(c) < 128 for c in member.name[0:4])
-	nickname_untypable = not all(ord(c) < 128 for c in member.display_name[0:4])
-	return username_untypable and nickname_untypable
+	test_length = 4
+	uname = member.name[0:test_length]
+	nick = member.display_name[0:test_length]
+	username_untypable = not all(ord(c) < 128 for c in uname)
+	nickname_untypable = not all(ord(c) < 128 for c in nick)
+	def is_spacey(string):
+		spaces = 0
+		for c in string:
+			if c.isspace():
+				spaces+=1
+		return (spaces/len(string)) > .33
+	are_spacey = is_spacey(uname) and is_spacey(nick)
+	return (username_untypable and nickname_untypable) or are_spacey
 
 class CogExt(Cog, name=COG_NAME):
 	def __init__(self, bot):
