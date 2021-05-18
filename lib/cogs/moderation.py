@@ -30,6 +30,12 @@ class CogExt(Cog, name=COG_NAME):
 		self.bot = bot
 
 	@Cog.listener()
+	async def on_ready(self):
+		if not self.bot.ready:
+			self.bot.cogs_ready.ready_up(COG_NAME.lower())
+		await self.bot.statchnl.send(f"`{COG_NAME}` cog loaded")
+
+	@Cog.listener()
 	async def on_message(self, msg):
 
 		#Define useful shortcuts
@@ -62,6 +68,18 @@ class CogExt(Cog, name=COG_NAME):
 				if cont != '' or len(msg.attachments) != 1 or msg.attachments[0].height is not None:
 						await msg.delete()
 
+
+	# Command that kicks unregistered scrobblers
+	@command()
+	async def scrobbleprune(self, ctx, reg_users):
+		reg_user_ids = []
+		for user in reg_users:
+			reg_user_ids.append(user['discordUserID'])
+		members = ctx.guild.members
+		scrobbler = get(ctx.guild.roles, id=714964255169839125)
+		for member in members:
+			if scrobbler in member.roles and member.id not in reg_user_ids:
+				await ctx.send({member.mention})
 
 	# Commands and events for nickname moderation
 	@Cog.listener()
