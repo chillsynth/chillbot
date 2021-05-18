@@ -89,12 +89,15 @@ class CogExt(Cog, name=COG_NAME):
 				reg_users = json.loads(json_raw)
 				reg_user_ids = []
 				for user in reg_users:
-					reg_user_ids.append(user['discordUserID'])
+					reg_user_ids.append(int(user['discordUserID']))
 		members = ctx.guild.members
 		scrobbler = get(ctx.guild.roles, id=714964255169839125)
+		cnt = 0
 		for member in members:
 			if scrobbler in member.roles and member.id not in reg_user_ids:
-				await ctx.send({member.mention})
+				await member.remove_roles(scrobbler, reason="Not registered with Last.fm bot")
+				cnt += 1
+		await ctx.send(f'Removed {cnt} users from <#714966363114045530>')
 
 	# Commands and events for nickname moderation
 	@Cog.listener()
