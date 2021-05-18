@@ -2,7 +2,7 @@
 from discord import PermissionOverwrite
 from discord.ext.commands import *
 from discord.utils import get
-import discord
+import discord, aiohttp, json
 
 # Other dependencies
 from lib.helpers import url
@@ -82,9 +82,14 @@ class CogExt(Cog, name=COG_NAME):
 	# Command that kicks unregistered scrobblers
 	@command()
 	async def scrobbleprune(self, ctx, reg_users):
-		reg_user_ids = []
-		for user in reg_users:
-			reg_user_ids.append(user['discordUserID'])
+		json_raw = ""
+		async with aiohttp.ClientSession() as s:
+			async with s.get(reg_users) as r:
+				json_raw = await r.text()
+      			reg_users = json.loads(json_raw)
+				reg_user_ids = []
+				for user in reg_users:
+					reg_user_ids.append(user['discordUserID'])
 		members = ctx.guild.members
 		scrobbler = get(ctx.guild.roles, id=714964255169839125)
 		for member in members:
