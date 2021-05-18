@@ -86,7 +86,7 @@ class CogExt(Cog, name=COG_NAME):
 		async with aiohttp.ClientSession() as s:
 			async with s.get(reg_users) as r:
 				json_raw = await r.text()
-      			reg_users = json.loads(json_raw)
+	  			reg_users = json.loads(json_raw)
 				reg_user_ids = []
 				for user in reg_users:
 					reg_user_ids.append(user['discordUserID'])
