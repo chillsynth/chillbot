@@ -39,6 +39,9 @@ class CogExt(Cog, name=COG_NAME):
 	def __init__(self, bot):
 		self.bot = bot
 
+
+	## EVENTS
+
 	@Cog.listener()
 	async def on_ready(self):
 		if not self.bot.ready:
@@ -78,27 +81,6 @@ class CogExt(Cog, name=COG_NAME):
 				if cont != '' or len(msg.attachments) != 1 or msg.attachments[0].height is not None:
 						await msg.delete()
 
-
-	# Command that kicks unregistered scrobblers
-	@command()
-	async def scrobbleprune(self, ctx, reg_users):
-		json_raw = ""
-		async with aiohttp.ClientSession() as s:
-			async with s.get(reg_users) as r:
-				json_raw = await r.text()
-				reg_users = json.loads(json_raw)
-				reg_user_ids = []
-				for user in reg_users:
-					reg_user_ids.append(int(user['discordUserID']))
-		members = ctx.guild.members
-		scrobbler = get(ctx.guild.roles, id=714964255169839125)
-		cnt = 0
-		for member in members:
-			if scrobbler in member.roles and member.id not in reg_user_ids:
-				await member.remove_roles(scrobbler, reason="Not registered with Last.fm bot")
-				cnt += 1
-		await ctx.send(f'Removed {cnt} users from <#714966363114045530>')
-
 	# Commands and events for nickname moderation
 	@Cog.listener()
 	async def on_member_join(self, member):
@@ -110,10 +92,7 @@ class CogExt(Cog, name=COG_NAME):
 		if name_is_untypable(after):
 			await after.edit(nick="rule 11", reason="rule 11")
 
-	@command()
-	@has_any_role(*MODS)
-	async def is_untypable(self, ctx, member: discord.Member):
-		await ctx.send(str(name_is_untypable(member)))
+	
 
 	# Event to restrict access to voice chat text
 	@Cog.listener()
@@ -132,6 +111,38 @@ class CogExt(Cog, name=COG_NAME):
 			await chat_chnl.set_permissions(member, send_messages=True)
 		if (before_channel.id in vcs) and (after_channel.id not in vcs):
 			await chat_chnl.set_permissions(member, overwrite=None)
+
+
+	## COMMANDS
+
+	# Checks if username is untypable
+	@command()
+	@has_any_role(*MODS)
+	async def is_untypable(self, ctx, member: discord.Member):
+		await ctx.send(str(name_is_untypable(member)))
+
+	# Command that kicks unregistered scrobblers
+	@command()
+	@has_any_role(*MODS)
+	async def scrobbleprune(self, ctx, reg_users):
+		json_raw = ""
+		async with aiohttp.ClientSession() as s:
+			async with s.get(reg_users) as r:
+				json_raw = await r.text()
+				reg_users = json.loads(json_raw)
+				reg_user_ids = []
+				for user in reg_users:
+					reg_user_ids.append(int(user['discordUserID']))
+		members = ctx.guild.members
+		scrobbler = get(ctx.guild.roles, id=714964255169839125)
+		cnt = 0
+		for member in members:
+			if scrobbler in member.roles and member.id not in reg_user_ids:
+				await member.remove_roles(scrobbler, reason="Not registered with Last.fm bot")
+				cnt += 1
+		await ctx.send(f'Removed {cnt} users from <#714966363114045530>')
+
+	
 
 def setup(bot):
 	bot.add_cog(CogExt(bot))
