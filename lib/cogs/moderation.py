@@ -67,12 +67,12 @@ class CogExt(Cog, name=COG_NAME):
 				if not url.validate(cont): # If the URL is invalid or there are more than one in the message
 					await msg.delete()     # Then delete the message
 
-			if not is_dj(msg):
-				# radio-control moderation
-				if chnl.id == 840610850670641222:
-					allowed_cmds = [".np", ".pp10", "-q", "-queue", "-np"]
-					if cont not in allowed_cmds and not cont.startswith(("-p", "-play")):
-						await msg.delete()
+			#if not is_dj(msg):
+			#	# radio-control moderation
+			#	if chnl.id == 840610850670641222:
+			#		allowed_cmds = [".np", ".pp10", "-q", "-queue", "-np"]
+			#		if cont not in allowed_cmds and not cont.startswith(("-p", "-play")):
+			#			await msg.delete()
 
 
 			# Code for moderating contest submissions
