@@ -92,25 +92,24 @@ class CogExt(Cog, name=COG_NAME):
 		if name_is_untypable(after):
 			await after.edit(nick="rule 11", reason="rule 11")
 
-	
 
-	# Event to restrict access to voice chat text
-	@Cog.listener()
-	async def on_voice_state_update(self, member, before, after):
-		vcs = [543600804180000788, 497637943494836225, 836019956377845790]
-		chat_chnl = self.bot.get_channel(800792669978361877)
-		blank_chnl = self.bot.get_channel(619320260591484943)
-		before_channel = before.channel
-		after_channel = after.channel
+	# # Event to restrict access to voice chat text
+	# @Cog.listener()
+	# async def on_voice_state_update(self, member, before, after):
+	# 	vcs = [543600804180000788, 497637943494836225, 836019956377845790]
+	# 	chat_chnl = self.bot.get_channel(800792669978361877)
+	# 	blank_chnl = self.bot.get_channel(619320260591484943)
+	# 	before_channel = before.channel
+	# 	after_channel = after.channel
 
-		if before_channel == None:
-			before_channel = blank_chnl
-		if after_channel == None:
-			after_channel = blank_chnl
-		if (before_channel.id not in vcs) and (after_channel.id in vcs):
-			await chat_chnl.set_permissions(member, send_messages=True)
-		if (before_channel.id in vcs) and (after_channel.id not in vcs):
-			await chat_chnl.set_permissions(member, overwrite=None)
+	# 	if before_channel == None:
+	# 		before_channel = blank_chnl
+	# 	if after_channel == None:
+	# 		after_channel = blank_chnl
+	# 	if (before_channel.id not in vcs) and (after_channel.id in vcs):
+	# 		await chat_chnl.set_permissions(member, send_messages=True)
+	# 	if (before_channel.id in vcs) and (after_channel.id not in vcs):
+	# 		await chat_chnl.set_permissions(member, overwrite=None)
 
 
 	## COMMANDS
@@ -141,6 +140,30 @@ class CogExt(Cog, name=COG_NAME):
 				await member.remove_roles(scrobbler, reason="Not registered with Last.fm bot")
 				cnt += 1
 		await ctx.send(f'Removed {cnt} users from <#714966363114045530>')
+
+	# Removes image posting permissions from specified user
+	@command()
+	@has_any_role(*MODS)
+	async def noimg(self, ctx, member: discord.Member):
+		noimg_role = msg
+		va_role = msg 
+		en_msg = "Removed image posting permissions"
+		dis_msg = "Restored image posting permissions"
+		fin_msg = ""
+
+		if noimg_role not in member.roles:
+			await member.add_roles(noimg_role, reason=en_msg)
+			if va_role in member.roles:
+				await member.remove_roles(va_role, reason=en_msg)
+			fin_msg = en_msg
+		else:
+			await member.remove_roles(noimg_role, reason=en_msg)
+			fin_msg = dis_msg
+
+		await ctx.send(f"{fin_msg} for user {member.mention}")
+
+		
+
 
 	
 
