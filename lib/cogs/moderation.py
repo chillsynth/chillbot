@@ -145,8 +145,8 @@ class CogExt(Cog, name=COG_NAME):
 	@command()
 	@has_any_role(*MODS)
 	async def noimg(self, ctx, member: discord.Member):
-		noimg_role = msg
-		va_role = msg 
+		noimg_role = ctx.guild.get_role(854400190425464842)
+		va_role = ctx.guild.get_role(637731260520988674)
 		en_msg = "Removed image posting permissions"
 		dis_msg = "Restored image posting permissions"
 		fin_msg = ""
