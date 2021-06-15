@@ -141,6 +141,30 @@ class CogExt(Cog, name=COG_NAME):
 				cnt += 1
 		await ctx.send(f'Removed {cnt} users from <#714966363114045530>')
 
+	# Removes image posting permissions from specified user
+	@command()
+	@has_any_role(*MODS)
+	async def noimg(self, ctx, member: discord.Member):
+		noimg_role = msg
+		va_role = msg 
+		en_msg = "Removed image posting permissions"
+		dis_msg = "Restored image posting permissions"
+		fin_msg = ""
+
+		if noimg_role not in member.roles:
+			await member.add_roles(noimg_role, reason=en_msg)
+			if va_role in member.roles:
+				await member.remove_roles(va_role, reason=en_msg)
+			fin_msg = en_msg
+		else:
+			await member.remove_roles(noimg_role, reason=en_msg)
+			fin_msg = dis_msg
+
+		await ctx.send(f"{fin_msg} for user {member.mention}")
+
+		
+
+
 	
 
 def setup(bot):
