@@ -2,6 +2,8 @@
 from discord import PermissionOverwrite
 from discord.ext.commands import *
 from discord.utils import get
+import random
+import discord
 
 # Other dependencies
 from lib.helpers import url
@@ -55,6 +57,13 @@ class CogExt(Cog, name=COG_NAME):
 	@has_role('Event Host')
 	async def eventsize(self, ctx):
 	    await ctx.send("There are `"+str(len(self.event_strm.members))+"` people in the event stream!")
+
+	@command()
+	@has_role('**')
+	async def randreact(self, ctx, msg: discord.Message):
+		users = await msg.reactions[0].users().flatten()
+		winner = random.choice(users)
+		await ctx.send(f'{winner.mention} is the lucky winner!')
 
 
 def setup(bot):
