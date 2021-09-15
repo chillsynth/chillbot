@@ -81,16 +81,16 @@ class CogExt(Cog, name=COG_NAME):
 				if cont != '' or len(msg.attachments) != 1 or msg.attachments[0].height is not None:
 						await msg.delete()
 
-	# Commands and events for nickname moderation
-	@Cog.listener()
-	async def on_member_join(self, member):
-		if name_is_untypable(member):
-			await member.edit(nick="rule 11", reason="rule 11")
+	# # Commands and events for nickname moderation
+	# @Cog.listener()
+	# async def on_member_join(self, member):
+	# 	if name_is_untypable(member):
+	# 		await member.edit(nick="rule 11", reason="rule 11")
 
-	@Cog.listener()
-	async def on_member_update(self, before, after):
-		if name_is_untypable(after):
-			await after.edit(nick="rule 11", reason="rule 11")
+	# @Cog.listener()
+	# async def on_member_update(self, before, after):
+	# 	if name_is_untypable(after):
+	# 		await after.edit(nick="rule 11", reason="rule 11")
 
 
 	# # Event to restrict access to voice chat text
@@ -162,10 +162,6 @@ class CogExt(Cog, name=COG_NAME):
 
 		await ctx.send(f"{fin_msg} for user {member.mention}")
 
-		
-
-
-	
 
 def setup(bot):
 	bot.add_cog(CogExt(bot))
