@@ -52,7 +52,7 @@ class Bot(BotBase):
 		if not self.ready:
 
 			# Set important attributes
-			self.statchnl = self.get_channel(517654463280840704)
+			self.statchnl = self.get_channel(844030375625621514)
 			self.guild = self.get_guild(488405912659427358)
 
 			await self.change_presence(activity=discord.Streaming(name="ChillSynth FM", url="https://twitch.tv/chillsynth_fm"))

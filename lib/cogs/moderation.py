@@ -39,7 +39,6 @@ class CogExt(Cog, name=COG_NAME):
 	def __init__(self, bot):
 		self.bot = bot
 
-
 	## EVENTS
 
 	@Cog.listener()
@@ -47,6 +46,7 @@ class CogExt(Cog, name=COG_NAME):
 		if not self.bot.ready:
 			self.bot.cogs_ready.ready_up(COG_NAME.lower())
 		await self.bot.statchnl.send(f"`{COG_NAME}` cog loaded")
+
 
 	@Cog.listener()
 	async def on_message(self, msg):
@@ -111,6 +111,26 @@ class CogExt(Cog, name=COG_NAME):
 	# 	if (before_channel.id in vcs) and (after_channel.id not in vcs):
 	# 		await chat_chnl.set_permissions(member, overwrite=None)
 
+
+	# Automatically grant/remove Supporters role to nitro boosters
+	@Cog.listener()
+	async def on_member_update(self, before, after):
+		print("event triggered")
+		
+		# Set common roles
+		self.supporter_role = self.bot.guild.get_role(890043225509888040)
+		self.booster_role = self.bot.guild.get_role(637750149892014100)
+		self.patreon_role = self.bot.guild.get_role(894375740731191316)
+
+		# check if new booster
+		if self.booster_role not in before.roles and self.booster_role in after.roles:
+			await after.add_roles(self.supporter_role, reason="New Nitro Booster")
+
+		# Patreon subscribers get to keep the supporter role
+		if self.patreon_role not in before.roles:
+			# if boost expired
+			if self.booster_role in before.roles and self.booster_role not in after.roles:
+				await after.remove_roles(self.supporter_role, reason="Nitro Boost expired")
 
 	## COMMANDS
 
