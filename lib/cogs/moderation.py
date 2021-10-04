@@ -115,8 +115,6 @@ class CogExt(Cog, name=COG_NAME):
 	# Automatically grant/remove Supporters role to nitro boosters
 	@Cog.listener()
 	async def on_member_update(self, before, after):
-		print("event triggered")
-		
 		# Set common roles
 		self.supporter_role = self.bot.guild.get_role(890043225509888040)
 		self.booster_role = self.bot.guild.get_role(637750149892014100)
