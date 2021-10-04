@@ -116,9 +116,9 @@ class CogExt(Cog, name=COG_NAME):
 	@Cog.listener()
 	async def on_member_update(self, before, after):
 		# Set common roles
-		self.supporter_role = self.bot.guild.get_role(890043225509888040)
-		self.booster_role = self.bot.guild.get_role(637750149892014100)
-		self.patreon_role = self.bot.guild.get_role(894375740731191316)
+		self.supporter_role = before.guild.get_role(890043225509888040)
+		self.booster_role = before.guild.get_role(637750149892014100)
+		self.patreon_role = before.guild.get_role(894375740731191316)
 
 		# check if new booster
 		if self.booster_role not in before.roles and self.booster_role in after.roles:
