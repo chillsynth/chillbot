@@ -99,16 +99,18 @@ class CogExt(Cog, name=COG_NAME):
 		vcs = [543600804180000788, 850761606408306788, 497637943494836225]
 		everyone = member.guild.get_role(488405912659427358)
 		chat_chnl = self.bot.get_channel(800792669978361877)
-		chnl_open = False
+		chnl_open = True
 
+		# if user joined or other update
 		try:
 			if (after.channel.id in vcs):
 				chnl_open = len(after.channel.members) > 0
+		# if user left
 		except AttributeError:
-			chnl_open = False
+			if before.channel.id in vcs and len(before.channel.members) == 0:
+				chnl_open = False
 
 		await chat_chnl.set_permissions(everyone, send_messages=chnl_open)
-
 
 
 	# Automatically grant/remove Supporters role to nitro boosters
