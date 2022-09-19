@@ -1,31 +1,33 @@
 from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
-import traceback
 from datetime import datetime
 import discord
-import os
 
 load_dotenv()
 
 
-class CogTest(commands.Cog):
+class Members(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="ping")
-    async def ping(self, interaction: discord.Interaction):
-        """Gets bot latency"""
-        embed = discord.Embed(title='**Current Latency**',
-                              description=f"Retrieved latest bot latency",
-                              color=0xeee657)
-        embed.add_field(name=None, value=f'Latency: **{round(self.bot.latency * 1000)}**ms')
-        await interaction.response.send_message(embed=embed)
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f"`Members` cog loaded")
 
     @app_commands.command(name="feedback", description="Submit feedback")
     async def feedback(self, interaction: discord.Interaction):
         """Send feedback to the server team"""
         await interaction.response.send_modal(Feedback())
+
+    # @app_commands.command(name="ping")
+    # async def ping(self, interaction: discord.Interaction):
+    #     """Gets bot latency"""
+    #     embed = discord.Embed(title='**Current Latency**',
+    #                           description=f"Retrieved latest bot latency",
+    #                           color=0xeee657)
+    #     embed.add_field(name=None, value=f'Latency: **{round(self.bot.latency * 1000)}**ms')
+    #     await interaction.response.send_message(embed=embed)
 
 
 class Feedback(discord.ui.Modal, title='Feedback'):
@@ -47,7 +49,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
         embed.set_author(name=interaction.user, icon_url=user_avatar.url)
         embed.set_thumbnail(url=user_avatar.url)
 
-        channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
+        channel = discord.utils.get(interaction.guild.threads, name="User Feedback")
         await channel.send(embed=embed)
 
         await interaction.response.send_message(f'Thanks for your feedback, {interaction.user.name}!', ephemeral=True)
@@ -59,4 +61,4 @@ class Feedback(discord.ui.Modal, title='Feedback'):
 
 
 async def setup(bot):
-    await bot.add_cog(CogTest(bot))
+    await bot.add_cog(Members(bot))
