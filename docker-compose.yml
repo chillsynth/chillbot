@@ -1,4 +1,6 @@
 services:
   chillbot:
-    image: "python:latest"
-    command: pip install discord.py[voice] && git clone https://github.com/npgy/chillbot
+    build: .
+    image: chillbot-alpine
+    env_file: .env
+    command: python chillbot
