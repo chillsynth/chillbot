@@ -1,0 +1,4 @@
+services:
+  chillbot:
+    image: "python:latest"
+    command: pip install discord.py[voice]
