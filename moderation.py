@@ -38,7 +38,6 @@ class Moderation(commands.Cog):
             if "!report" in message.content.lower():
                 await message.channel.send('this is a resonance response')
 
-
     @staticmethod
     async def my_cool_context_menu(interaction: discord.Interaction, message: discord.Message) -> None:
         await interaction.response.send_message(
