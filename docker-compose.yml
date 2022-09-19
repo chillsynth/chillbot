@@ -1,4 +1,4 @@
 services:
   chillbot:
     image: "python:latest"
-    command: pip install discord.py[voice]
+    command: pip install discord.py[voice] && git clone https://github.com/npgy/chillbot
