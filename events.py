@@ -2,13 +2,9 @@ from discord.ext import commands
 from discord import app_commands
 import os
 import discord
-from dotenv import load_dotenv
 import random
 
 # import random
-
-load_dotenv()
-
 
 class Events(commands.Cog):
     def __init__(self, bot):

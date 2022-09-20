@@ -1,0 +1,6 @@
+services:
+  chillbot:
+    build: .
+    image: chillbot-alpine
+    env_file: .env
+    command: python chillbot

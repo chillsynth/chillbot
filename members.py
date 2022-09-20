@@ -1,11 +1,7 @@
 from discord.ext import commands
 from discord import app_commands
-from dotenv import load_dotenv
 from datetime import datetime
 import discord
-
-load_dotenv()
-
 
 class Members(commands.Cog):
     def __init__(self, bot):

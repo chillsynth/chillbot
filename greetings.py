@@ -2,10 +2,6 @@ import os
 from discord.ext import commands
 from asyncio import sleep
 import discord
-from dotenv import load_dotenv
-
-load_dotenv()
-
 
 class Greetings(commands.Cog):
     def __init__(self, bot):

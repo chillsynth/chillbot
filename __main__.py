@@ -2,15 +2,11 @@ import logging
 import logging.handlers
 import asyncio
 import os
-from dotenv import load_dotenv
 from typing import List, Optional
 import discord
 from discord.ext import commands
 from discord import app_commands
 from aiohttp import ClientSession
-
-load_dotenv()
-
 
 class ChillBot(commands.Bot):
     def __init__(
