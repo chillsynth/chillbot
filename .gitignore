@@ -1,3 +1,4 @@
 *.env
 /venv/
 /lib/token.0
+.idea/
