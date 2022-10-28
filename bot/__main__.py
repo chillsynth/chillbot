@@ -17,7 +17,7 @@ class ChillBot(commands.Bot):
             *args,
             initial_extensions: List[str],
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = os.getenv("CS_GUILD_ID"),
+            testing_guild_id: Optional[int] = os.getenv("DEBUG_GUILD_ID"),
             **kwargs,
     ):
         super().__init__(*args, **kwargs)
