@@ -1,7 +1,5 @@
-*.db
-*.db-journal
-__pycache__
-token.0
-*.sublime-project
-*.sublime-workspace
-*.log
+*.env
+/venv/
+/lib/token.0
+.idea/
+/bot/discord.log
