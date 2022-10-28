@@ -5,8 +5,11 @@ import os
 from typing import List, Optional
 import discord
 from discord.ext import commands
-from discord import app_commands
 from aiohttp import ClientSession
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class ChillBot(commands.Bot):
     def __init__(
@@ -14,7 +17,7 @@ class ChillBot(commands.Bot):
             *args,
             initial_extensions: List[str],
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = os.getenv("DEBUG_GUILD_ID"),
+            testing_guild_id: Optional[int] = os.getenv("CS_GUILD_ID"),
             **kwargs,
     ):
         super().__init__(*args, **kwargs)

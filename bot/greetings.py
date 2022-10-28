@@ -3,6 +3,7 @@ from discord.ext import commands
 from asyncio import sleep
 import discord
 
+
 class Greetings(commands.Cog):
     def __init__(self, bot):
         # Variables to pre-load
@@ -15,19 +16,21 @@ class Greetings(commands.Cog):
         self.bot = bot
 
     def get_vars(self):
+        print(self.vars_loaded)
         if not self.vars_loaded:
             try:
-                self.online_role = self.bot.guild.roles
-                self.feedback_channel = int(os.getenv("FEEDBACK_ID"))
-                self.get_roles_channel = int(os.getenv("GET_ROLES_ID"))
+                self.online_role = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
+                print(self.get_roles_channel)
+                print(self.feedback_channel)
+                print(f"`Greetings` variables loaded")
                 self.vars_loaded = True
             except AttributeError:
+                print("Attribute Error in loading of variables")
                 return None
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(f"`Greetings` cog loaded")
+    async def cog_load(self):
         self.get_vars()
+        print(f"`Greetings` cog loaded")
 
     # On member update event
     @commands.Cog.listener()
@@ -36,14 +39,14 @@ class Greetings(commands.Cog):
             if before.pending is True and after.pending is False:
                 if self.online_role not in before.roles:  # Once onboarded and verified
                     await sleep(0.2)
-                    test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
+                    test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))  # YAY! guild object :catJAM:
                     lounge_channel = discord.utils.get(test_guild.channels, name="chill-lounge")
 
                     await after.add_roles(discord.utils.get(test_guild.roles, name="Online"))  # Add "Online" role
 
                     welcome_embed = discord.Embed(
-                        description=f"Head over to <#{self.get_roles_channel}> to grab your roles."
-                                    f"\nAnd as always, **`GIVE`** <#{self.feedback_channel}> "
+                        description=f"Head over to <#{os.getenv('GET_ROLES_ID')}> to grab your roles."
+                                    f"\nAnd as always, **`GIVE`** <#{os.getenv('FEEDBACK_ID')}> "
                                     f"before you **`ASK`** for it!",
                         colour=13281772
                     )
