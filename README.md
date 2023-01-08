@@ -1,12 +1,12 @@
-# chillbot v2
-Revamped Discord bot for the ChillSynth Discord server
+# chillbot v3
+![badge](https://img.shields.io/badge/-In%20Beta-%232e8fff?style=for-the-badge)
+### Revamped Discord bot for the ChillSynth Discord server
 
-Upcoming features and plans:
-- Link discord account to soundcloud profile so everyone find an artist's music
-- Replace most commands with slash commands for simplicity
+### Upcoming features and plans:
+- Revamp Feedback Stream setup w/ queue and submit ![badge](https://img.shields.io/badge/-In%20Progress-%23e6a100?style=for-the-badge)
+- Update auto-emoji to automate other emojis ![badge](https://img.shields.io/badge/-In%20Progress-%23e6a100?style=for-the-badge)
 
-Future plans (likely to change):
-- Patreon role syncing
-- Replace music bots for Events, etc... (Hydra, Tempo, etc...?)
-- Replace current moderation bots (YAGPDB, MEE6, etc...)
-- Replace Last.FM bots (Chuu)
+### Future plans (likely to change):
+> Ticketing system for members using threads ![badge](https://img.shields.io/badge/-v4-%23ff3617?style=for-the-badge)
+
+> Database system ![badge](https://img.shields.io/badge/-v4-%23ff3617?style=for-the-badge)
