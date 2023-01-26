@@ -101,7 +101,7 @@ class Moderation(commands.Cog):
 
     @app_commands.command()
     async def create_invite(self, interaction: discord.Interaction, channel: discord.TextChannel,
-                            age, uses):
+                            age: int, uses: int):
         invite = await channel.create_invite(max_age=age, max_uses=uses)
         await interaction.channel.send(f"Successfully created invite: {str(invite)} for channel <#{channel.id}>")
 
