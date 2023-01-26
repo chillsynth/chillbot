@@ -99,6 +99,11 @@ class Moderation(commands.Cog):
         # await report_log_channel.send(f"{mod_role.mention}")  # Tag Moderators
         await report_log_channel.send(embed=embed, view=url_view)
 
+    @app_commands.command()
+    async def create_invite(self, interaction: discord.Interaction, channel: discord.TextChannel,
+                            age, uses):
+        invite = await channel.create_invite(max_age=age, max_uses=uses)
+        await interaction.channel.send(f"Successfully created invite: {str(invite)} for channel <#{channel.id}>")
 
 # USER REPORT MODAL
 # class Report(discord.ui.Modal, title='Report'):
