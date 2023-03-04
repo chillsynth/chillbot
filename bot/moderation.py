@@ -31,6 +31,29 @@ class Moderation(commands.Cog):
         print(f"`Moderation` cog loaded")
         self.get_vars()
 
+    @app_commands.default_permissions(use_application_commands=True)
+    @app_commands.checks.has_permissions(use_application_commands=True)
+    async def report_message(self, interaction: discord.Interaction, message: discord.Message) -> None:
+        await interaction.response.send_message(
+            f'Thanks for reporting this message by {message.author.mention} to our moderators.', ephemeral=True
+        )
+        report_log_channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
+        # Handle report by sending it into a log channel
+        # log_channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
+        embed = discord.Embed(title='Reported Message',
+                              colour=discord.Colour.red())
+        if message.content:
+            embed.description = message.content
+
+        embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
+        embed.timestamp = message.created_at
+
+        url_view = discord.ui.View()
+        url_view.add_item(discord.ui.Button(label='Go to Message', style=discord.ButtonStyle.url, url=message.jump_url))
+
+        # await report_log_channel.send(f"{mod_role.mention}")  # Tag Moderators
+        await report_log_channel.send(embed=embed, view=url_view)
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.bot.user:  # Don't reply to itself. Could again be client for you
@@ -75,30 +98,11 @@ class Moderation(commands.Cog):
 
         await interaction.response.send_message(f"{fin_msg} for user {member.mention}")
 
-    @staticmethod
-    @app_commands.default_permissions(use_application_commands=True)
-    @app_commands.checks.has_permissions(use_application_commands=True)
-    async def report_message(interaction: discord.Interaction, message: discord.Message) -> None:
-        await interaction.response.send_message(
-            f'Thanks for reporting this message by {message.author.mention} to our moderators.', ephemeral=True
-        )
-        report_log_channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        # Handle report by sending it into a log channel
-        # log_channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        embed = discord.Embed(title='Reported Message',
-                              colour=discord.Colour.red())
-        if message.content:
-            embed.description = message.content
-
-        embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
-        embed.timestamp = message.created_at
-
-        url_view = discord.ui.View()
-        url_view.add_item(discord.ui.Button(label='Go to Message', style=discord.ButtonStyle.url, url=message.jump_url))
-
-        # await report_log_channel.send(f"{mod_role.mention}")  # Tag Moderators
-        await report_log_channel.send(embed=embed, view=url_view)
-
+    @app_commands.command()
+    async def create_invite(self, interaction: discord.Interaction, channel: discord.TextChannel,
+                            age: int, uses: int):
+        invite = await channel.create_invite(max_age=age, max_uses=uses)
+        await interaction.channel.send(f"Successfully created invite: {str(invite)} for channel <#{channel.id}>")
 
 # USER REPORT MODAL
 # class Report(discord.ui.Modal, title='Report'):

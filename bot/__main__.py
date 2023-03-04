@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import asyncio
 import os
+import pymongo
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -47,6 +48,13 @@ async def main():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
 
+    # DB Setup
+    client = pymongo.MongoClient(os.getenv("mongo_uri"))
+    db = client.test
+
+    # Show connection to DB
+    print(db)
+
     handler = logging.handlers.RotatingFileHandler(
         filename='discord.log',
         encoding='utf-8',
@@ -61,7 +69,7 @@ async def main():
     async with ClientSession() as our_client:
         # 2. We become responsible for starting the bot.
         print(f"<Starting>")
-        extensions = ["members", "fun", "greetings", "events", "moderation"]
+        extensions = ["members", "fun", "greetings", "events", "moderation", "art"]
         async with ChillBot(commands.when_mentioned,
                             web_client=our_client,
                             initial_extensions=extensions,
