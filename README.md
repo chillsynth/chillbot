@@ -8,4 +8,3 @@
 
 > ## Future plans (likely to change):
 ![badge](https://img.shields.io/badge/Ticketing%20system%20for%20members%20using%20threads-v4-%23ff3617?style=for-the-badge)\
-![badge](https://img.shields.io/badge/Database%20System-v4-%23ff3617?style=for-the-badge)
