@@ -1,5 +1,7 @@
-# chillbot v2
+# chillbot
 Revamped Discord bot for the ChillSynth Discord server
+
+v3 progress:
 
 Upcoming features and plans:
 - Link discord account to soundcloud profile so everyone find an artist's music
