@@ -5,7 +5,14 @@ from discord import app_commands
 import os
 import discord
 import pymongo
+import logging
 
+
+#   TODO:
+#       Feedback queue embed system
+#       User discord GET user profile pic for embed
+#       SoundCloud/Bandcamp auto-link in #event-chat
+#       Booster Check and queue system
 
 # import random
 
@@ -19,46 +26,27 @@ class Events(commands.Cog):
         self.online_role = None
         self.event_type = None  # 0 = Stage; 1 = Stream
 
-        self.vars_loaded = False
-        self.get_vars()
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
+
         self.bot = bot
 
         # DB Setup
         self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
         self.db = self.client["_events"]
 
-    def get_vars(self):
-        if not self.vars_loaded:
-            try:
-                print(f"`Events` variables loaded")
-                self.vars_loaded = True
-            except AttributeError:
-                return None
-
     async def cog_load(self):
-        print(f"`Events` cog loaded")
-        self.get_vars()
+        self.logger.info(f"Events.cog: LOADED!")
 
     @commands.Cog.listener()
-    async def on_thread_create(self, thread):
-        if thread.parent.type == discord.ChannelType.forum:  # Check if thread is in FORUM channel
+    async def on_thread_create(self, thread):  # fixme: Not sure this might break other forum channels
+        if thread.parent.type == discord.ChannelType.forum:  # Check if thread is a FORUM channel
             new_tag = discord.utils.get(thread.parent.available_tags, name="New")
             await thread.add_tags(new_tag)
 
     @commands.Cog.listener()
     async def on_thread_delete(self, name):
-        print(name)
-
-    # TRACK SUBMIT
-    @app_commands.command(name="submit", description="Submit your track for the Feedback Stream")
-    async def submit(self, interaction: discord.Interaction):
-        print("FINISH THIS")
-
-    # TODO
-    #   Feedback queue embed system
-    #   User discord GET user profile pic for embed
-    #   SoundCloud link command
-    #   Booster Check and queue system
+        self.logger.info(f"Events.cog: {name} Thread was deleted.")
 
     # EVENT HOST ONLY
     @app_commands.command(name="fb", description="Feedback Stream commands")
@@ -76,30 +64,36 @@ class Events(commands.Cog):
                  reason: typing.Optional[str]):
         # ADD TRACK TO QUEUE
         if option.value == 0:
+            existing_queue = []
+            for document in self.db.feedback_queue.find({}):
+                print(document)
+                existing_queue.append(document)
+
+            if existing_queue is []:  # If queue is empty, then 1st entry
+                # Submit new DB record with submission data
+                self.db.feedback_queue.insert_one(
+                    {
+                        "submission_title": str(interaction.channel.name),
+                        "submission_user_ID": int(interaction.channel.owner.id),
+                        "submission_thread_ID": int(interaction.channel.id)
+                    }
+                )
+
+                print(f"Added  for {interaction.channel.name}")  # TODO: Remove this when done
+                self.logger.info(f"Events.cog: Added  for {interaction.channel.name}")
+
             new_tag = discord.utils.get(interaction.channel.parent.available_tags, name="Added")
             await interaction.channel.edit(applied_tags=[new_tag])
 
-            # Submit new DB record with submission data
-            self.db.feedback_queue.insert_one(
-                {
-                    "track_title": str(interaction.channel.name),
-                    "track_artist": str(interaction.channel.name),
-                    "submission_user_ID": int(interaction.channel.owner.id),
-                    "thread_ID": int(interaction.channel.id)
-                }
-            )
-
-            print(f"Added record for {interaction.channel.name}")  # Send to system logs
-
             feedback_queue_thread = discord.utils.get(interaction.guild.threads, name="Feedback Stream™ Queue")
-            print(feedback_queue_thread)
 
             # https://discohook.org/?data=eyJtZXNzYWdlcyI6W3siZGF0YSI6eyJjb250ZW50IjpudWxsLCJlbWJlZHMiOlt7ImNvbG9yIjoxNjc0NDgzMCwiZmllbGRzIjpbeyJuYW1lIjoiQ1VSUkVOVExZIFBMQVlJTkciLCJ2YWx1ZSI6IlRlc3QgVHJhY2sgLSBIdXJsZXliaXJkIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiJTdWJtaXR0ZWQgQnkiLCJ2YWx1ZSI6IlVzZXJuYW1lIzAwMDEifV0sImZvb3RlciI6eyJ0ZXh0IjoiTGFzdCBVcGRhdGVkIn0sInRpbWVzdGFtcCI6IjIwMjMtMDEtMzBUMjM6MDE6MDAuMDAwWiIsInRodW1ibmFpbCI6eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9hdmF0YXJzLzM2MDg4MjkwMzkxMzIwMTY3NS9hX2I1YTYzMGVmYmJhMmNhMTY0NjRkMTRjYTQ4MmRjNWE3LmdpZj9zaXplPTEwMjQifX0seyJ0aXRsZSI6IlVQIE5FWFQiLCJjb2xvciI6MzQ5NzA4MywiZmllbGRzIjpbeyJuYW1lIjoiPiAxIiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gMiIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDMiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA0IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gNSIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDYiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA3IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gOCIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDkiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX1dLCJmb290ZXIiOnsidGV4dCI6Ikxhc3QgVXBkYXRlZCJ9LCJ0aW1lc3RhbXAiOiIyMDIzLTAxLTMwVDIzOjAxOjAwLjAwMFoifV0sInVzZXJuYW1lIjoiRmVlZGJhY2sgU3RyZWFt4oSiIFF1ZXVlIiwiYXR0YWNobWVudHMiOltdfX1dfQ
 
             await feedback_queue_thread.send(content="Test1")
+
             # 1 - Test Track by Hurleybird
             await interaction.response.send_message(
-                f"Added {interaction.channel.name} to the Feedback Stream™ Queue!")
+                f"**Added** {interaction.channel.name} to the Feedback Stream™ Queue!")
 
         # REMOVE TRACK FROM QUEUE
         elif option.value == 1:
@@ -117,7 +111,7 @@ class Events(commands.Cog):
                 print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
 
             await interaction.response.send_message(
-                f"Removed {interaction.channel.name} from the queue.")
+                f"**Removed** {interaction.channel.name} from the queue.")
 
         # DECLINE SUBMISSION WITH REASON
         elif option.value == 2:
@@ -134,7 +128,7 @@ class Events(commands.Cog):
                 print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
 
             await interaction.response.send_message(
-                f"Declined submission for reason: {reason}")
+                f"**Declined** submission for reason: `{reason}`")
 
         # NEEDS REVIEW WITH REASON
         elif option.value == 3:
@@ -150,8 +144,7 @@ class Events(commands.Cog):
                 self.db.feedback_queue.delete_one(delete_key)
                 print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
 
-            await interaction.response.send_message(
-                f"Needs review for reason: {reason}")
+            await interaction.response.send_message(f"**Needs Review** for reason: `{reason}`")
 
         else:
             await interaction.response.send_message(f"Something broke in [fb] logic.")
@@ -159,8 +152,7 @@ class Events(commands.Cog):
     # EVENT MODE TOGGLE
     @app_commands.command(name="event", description="Sets Event Mode on and off.")
     @app_commands.checks.has_role("Event Host")
-    @app_commands.choices(
-        event_type=[
+    @app_commands.choices(event_type=[
             discord.app_commands.Choice(name="Stage", value=0),
             discord.app_commands.Choice(name="Stream", value=1)
         ]
@@ -168,9 +160,9 @@ class Events(commands.Cog):
     async def event(self, interaction: discord.Interaction,
                     event_type: discord.app_commands.Choice[int],
                     enable: bool):
-        self.event_stage = self.bot.get_channel(int(os.getenv("EVENT_STAGE_ID")))
-        self.event_stream = self.bot.get_channel(int(os.getenv("EVENT_STREAM_ID")))
-        self.event_chat = self.bot.get_channel(int(os.getenv("EVENT_CHAT_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
+        self.event_chat = self.bot.get_channel(int(os.getenv("DEV!_EVENT_CHAT_ID")))
 
         self.online_role = discord.utils.get(interaction.guild.roles, name="Online")
         # Set permissions
@@ -200,9 +192,9 @@ class Events(commands.Cog):
     @app_commands.command(name="emove", description="Moves all members to #Hangout Room VC")
     @app_commands.checks.has_role("Event Host")
     async def eventmove(self, interaction: discord.Interaction):
-        self.vc_channel = self.bot.get_channel(int(os.getenv("PUBLIC_VC_ID")))
-        self.event_stage = self.bot.get_channel(int(os.getenv("EVENT_STAGE_ID")))
-        self.event_stream = self.bot.get_channel(int(os.getenv("EVENT_STREAM_ID")))
+        self.vc_channel = self.bot.get_channel(int(os.getenv("DEV!_PUBLIC_VC_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
         for member in self.event_stream.members:  # Move all #Event Stream to #Hangout Room
             await member.move_to(self.vc_channel)
         for member in self.event_stage.members:  # Move all #Event Stage to #Hangout Room
@@ -213,8 +205,8 @@ class Events(commands.Cog):
     @app_commands.command(name="esize", description="Counts all members in the event")
     @app_commands.checks.has_role("Event Host")
     async def eventsize(self, interaction: discord.Interaction):
-        self.event_stream = self.bot.get_channel(int(os.getenv("EVENT_STREAM_ID")))
-        self.event_stage = self.bot.get_channel(int(os.getenv("EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
         await interaction.response.send_message(f"There are {str(len(self.event_stream.members))} "
                                                 f"people in the stream!")
 

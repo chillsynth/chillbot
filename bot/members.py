@@ -6,6 +6,7 @@ import discord
 import pymongo
 from datetime import *
 import time
+import logging
 
 
 class Members(commands.Cog):
@@ -16,8 +17,11 @@ class Members(commands.Cog):
         self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
         self.db = self.client["_server"]
 
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
+
     async def cog_load(self):
-        print(f"`Members` cog loaded")
+        self.logger.info(f"Members.cog: LOADED!")
 
     # USERNAME UPDATE
     @commands.Cog.listener()
@@ -27,13 +31,13 @@ class Members(commands.Cog):
         if updated_username is previous_username:  # Username matches - Ignore
             pass
         elif updated_username is not previous_username:  # Username has changed
-            print(f"{previous_username} changed to {updated_username}")
+            self.logger.info(f"{previous_username} changed to {updated_username}")
 
             # Search DB record
             key = {"discord_user_ID": new.id}
             search_result = None
             for result in self.db.members.find(key):
-                print(f"Found {updated_username} under: ObjectID:{result['_id']}")  # Report to system logs
+                # print(f"Found {updated_username} under: ObjectID:{result['_id']}")  # DEBUG
 
                 search_result = result
 
@@ -68,13 +72,13 @@ class Members(commands.Cog):
         if new.nick == old.nick:  # No nickname changes - Ignore
             pass
         elif new.nick is not old.nick:  # Nickname has changed
-            print(f"{old.nick} changed to {new.nick}")
+            self.logger.info(f"{old.nick} changed to {new.nick}")
 
             # Search DB record
             key = {"discord_user_ID": new.id}
             search_result = None
             for result in self.db.members.find(key):
-                print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # Report to system logs
+                # print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # DEBUG
 
                 search_result = result
 
@@ -107,29 +111,31 @@ class Members(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, new_member: discord.Member):
         if new_member.system:  # Official Discord User
+            self.logger.info(f"WOAH! {new_member.name}#{new_member.discriminator} is a system user :)")
             print(f"WOAH! {new_member.name}#{new_member.discriminator} is a system user :)")
 
         # Search DB record
         key = {"discord_user_ID": new_member.id}
         search_result = None
         for result in self.db.members.find(key):
-            print(f"Existing record for {new_member.name}#{new_member.discriminator} "  # Report outcome to system logs
-                  f"found: ObjectID:{result['_id']}")
+            # print(f"Existing record for {new_member.name}#{new_member.discriminator} "  # DEBUG
+            #      f"found: ObjectID:{result['_id']}")
 
             search_result = result
 
         if search_result is not None:  # Database entry found!
-            print(f"Updating existing record for {new_member.name}#{new_member.discriminator} "
-                  f"under: ObjectID:{search_result['_id']}")
+            self.logger.debug(f"Updating existing record for {new_member.name}#{new_member.discriminator} "
+                              f"under: ObjectID:{search_result['_id']}")
 
             # Update Usernames
             current_full_username = str(f"{new_member.name}#{new_member.discriminator}")  # For comparing usernames
-            print(current_full_username)
+            # print(current_full_username)  # DEBUG
 
             if search_result["discord_username"] == current_full_username:  # Check if username needs updating
-                print("Username matches!")
+                # print("Username matches!")  # DEBUG
+                pass
             else:  # Username has changed, update entry with new username
-                print("Username differs! Updating...")
+                # print("Username differs! Updating...")  # DEBUG
                 username_updated_value = {
                     "$set": {
                         "discord_username": f"{new_member.name}#{new_member.discriminator}",
@@ -183,11 +189,11 @@ class Members(commands.Cog):
             self.db.members.update_one(query, server_updated_values)
 
         elif search_result is None:
-            print(f"No record found for {new_member.name}#{new_member.discriminator}; Creating new entry.")
+            self.logger.debug(f"No record found for {new_member.name}#{new_member.discriminator}; Creating new entry.")
 
             # Create new entry in DB
             creation_date = new_member.created_at
-            print(str(creation_date))
+            # print(str(creation_date))  # DEBUG
 
             self.db.members.insert_one(
                 {
@@ -209,9 +215,15 @@ class Members(commands.Cog):
                 }
             )
         else:
-            print("Not sure what I'm supposed to do now... :/")
+            self.logger.critical(f"Members.cog: Not sure what I'm supposed to do now... :/")
 
-    @app_commands.command(name="feedback", description="Submit feedback")
+    # SOCIALS URL MANAGEMENT
+    @app_commands.command(name="socials", description="Edit your music platform social links")
+    async def socials(self, interaction: discord.Interaction):
+        """Edit social URLs for feedback stream, etc..."""
+        await interaction.response.send_modal(Socials(interaction))
+
+    @app_commands.command(name="feedback", description="Submit user feedback")
     async def feedback(self, interaction: discord.Interaction):
         """Send feedback to the server team"""
         await interaction.response.send_modal(Feedback())
@@ -220,6 +232,74 @@ class Members(commands.Cog):
     async def report(self, interaction: discord.Interaction):
         """Send report to the mod team"""
         await interaction.response.send_modal(UserReport())
+
+
+# SOCIALS MODAL - TODO: Finish SoundCloud/Bandcamp socials command
+class Socials(discord.ui.Modal, title='Social URL Management'):
+    def __init__(self, interaction: discord.Interaction):
+        # DB Setup
+        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.db = self.client["_server"]
+
+        super().__init__()
+
+        # Search DB record
+        key = {"discord_user_ID": interaction.user.id}
+        search_result = None
+        for result in self.db.members.find(key):
+            # print(f"Found {result['discord_username']} under: ObjectID:{result['_id']}")  # DEBUG
+            search_result = result
+
+        current_soundcloud_url = ""
+        current_bandcamp_url = ""
+
+        try:
+            current_soundcloud_url = search_result['soundcloud_url']
+        except KeyError:
+            pass  # TODO: Add logging for no SoundCloud URL
+        try:
+            current_bandcamp_url = search_result['bandcamp_url']
+        except KeyError:
+            pass  # TODO: Add logging for no bandcamp URL
+
+        self.soundcloud_user_url = discord.ui.TextInput(
+            label="SoundCloud Profile URL",
+            style=discord.TextStyle.short,
+            placeholder="https://soundcloud.com/<your name>",
+            default=f"{current_soundcloud_url}",
+            required=False,
+            max_length=128
+        )
+
+        self.bandcamp_user_url = discord.ui.TextInput(
+            label="Bandcamp Artist URL",
+            style=discord.TextStyle.short,
+            placeholder="https://<your name>.bandcamp.com",
+            default=f"{current_bandcamp_url}",
+            required=False,
+            max_length=128
+        )
+
+        self.add_item(self.soundcloud_user_url)
+        self.add_item(self.bandcamp_user_url)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        socials_updated_value = {
+            "$set": {
+                "soundcloud_url": str(self.soundcloud_user_url),
+                "bandcamp_url": str(self.bandcamp_user_url)
+            }
+        }
+
+        db_filter = {"discord_user_ID": interaction.user.id}  # Filter by userID
+        self.db.members.update_one(db_filter, socials_updated_value)
+
+        await interaction.response.send_message(f'Changes have been saved, {interaction.user.name}!', ephemeral=True)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+
+        print(error)
 
 
 # USER REPORT MODAL
@@ -252,7 +332,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
         channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        mod_role = interaction.guild.get_role(int(os.getenv('MOD_ROLE_ID')))
+        mod_role = interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID')))
         await channel.send(f"{mod_role.mention}")
         await channel.send(embed=embed)
 
@@ -261,7 +341,9 @@ class UserReport(discord.ui.Modal, title='Report'):
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
 
-        print(error)
+        logger = logging.getLogger('discord')
+        logger.setLevel(logging.INFO)
+        logger.error(f"{error}")
 
 
 # USER FEEDBACK MODAL
@@ -292,7 +374,9 @@ class Feedback(discord.ui.Modal, title='Feedback'):
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
 
-        print(error)
+        logger = logging.getLogger('discord')
+        logger.setLevel(logging.INFO)
+        logger.error(f"{error}")
 
 
 async def setup(bot):

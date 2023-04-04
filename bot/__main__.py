@@ -18,7 +18,7 @@ class ChillBot(commands.Bot):
             *args,
             initial_extensions: List[str],
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = os.getenv("DEBUG_GUILD_ID"),
+            testing_guild_id: Optional[int] = os.getenv("DEV!_GUILD_ID"),
             **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -46,13 +46,6 @@ async def main():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
 
-    # DB Setup
-    client = pymongo.MongoClient(os.getenv("mongo_uri"))
-    db = client.test
-
-    # Show connection to DB
-    print(db)
-
     handler = logging.handlers.RotatingFileHandler(
         filename='discord.log',
         encoding='utf-8',
@@ -64,9 +57,17 @@ async def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    # DB Setup
+    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+    db = client.test
+
+    # Show connection to DB
+    print(db)
+    logger.info(db)
+
     async with ClientSession() as our_client:
         print(f"<Starting>")
-        extensions = ["members", "fun", "greetings", "events", "moderation", "art", "admin"]
+        extensions = ["members", "extras", "greetings", "events", "moderation", "admin"]  # "art" v4?
         async with ChillBot(commands.when_mentioned,
                             web_client=our_client,
                             initial_extensions=extensions,
@@ -75,6 +76,6 @@ async def main():
                                                       name="ChillSynth FM",
                                                       url="https://nightride.fm/eq?station=chillsynth"),
                             status=discord.Status.online) as bot:
-            await bot.start(os.getenv('TOKEN'))
+            await bot.start(os.getenv('DEV!_TOKEN'))
 
 asyncio.run(main())

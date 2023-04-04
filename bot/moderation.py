@@ -1,36 +1,58 @@
 import discord
 import sys
+import logging
 from discord.ext import commands
 from discord import app_commands
 
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
-        # Variables to pre-load
-        self.vars_loaded = False
-        self.get_vars()
         self.bot = bot
+
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
+
         self.ctx_menu = app_commands.ContextMenu(
             name='Report Message',
             callback=self.report_message,
         )
         self.bot.tree.add_command(self.ctx_menu)
 
-    def get_vars(self):
-        if not self.vars_loaded:
-            try:
-                print(f"`Moderation` variables loaded")
-                self.vars_loaded = True
-            except AttributeError:
-                return None
-
     async def cog_unload(self) -> None:
         self.bot.tree.remove_command(self.ctx_menu.name, type=self.ctx_menu.type)
 
     async def cog_load(self):
-        print(f"`Moderation` cog loaded")
-        self.get_vars()
+        self.logger.info(f"Moderation.cog: LOADED!")
 
+    # #demos moderation and SECRET!!!!!
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author == self.bot.user:  # Don't reply to itself
+            return
+        if message.channel.name == "demos":  # In demos channel
+            if message.content:  # If message has anything but an attachment
+                self.logger.info(f"Moderation.cog: {message.author.id} tried to send text in #demos.")
+                await message.delete()
+                await message.channel.send(content=f"<@{message.author.id}>, "
+                                                   f"this channel is for uploading files **only**.",
+                                           delete_after=6.0)
+            elif message.stickers:  # User sent a sticker
+                self.logger.info(f"Moderation.cog: {message.author.id} tried to send a sticker in #demos.")
+                await message.delete()
+                await message.channel.send(content=f"<@{message.author.id}>, "
+                                                   f"this channel is for uploading files **only**.",
+                                           delete_after=6.0)
+
+        elif not message.guild:  # Message is in DMs
+            if "!secret" in message.content.lower():
+                # await message.response.send_modal(Report())
+                # chillsynth_id = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
+                # log_channel = discord.utils.get(chillsynth_id.channels, name="moderator-chat")
+                message.channel.send(f"Congrats <@{message.author.id}>, you found the secret.")
+                self.logger.info(f"Moderation.cog: {message.author.display_name}[{message.author.id}] found the secret")
+                sys.stdout.write(f"DM received from {message.author.display_name}[{message.author.id}]")
+
+    # REPORT MESSAGE
     @app_commands.default_permissions(use_application_commands=True)
     @app_commands.checks.has_permissions(use_application_commands=True)
     async def report_message(self, interaction: discord.Interaction, message: discord.Message) -> None:
@@ -53,29 +75,7 @@ class Moderation(commands.Cog):
 
         # await report_log_channel.send(f"{mod_role.mention}")  # Tag Moderators
         await report_log_channel.send(embed=embed, view=url_view)
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author == self.bot.user:  # Don't reply to itself. Could again be client for you
-            return
-        if not message.guild:
-            if "!secret" in message.content.lower():
-                # await message.response.send_modal(Report())
-                # chillsynth_id = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
-                # log_channel = discord.utils.get(chillsynth_id.channels, name="moderator-chat")
-
-                sys.stdout.write(f"DM received from {message.author.display_name}")
-
-    @app_commands.default_permissions(moderate_members=True)
-    @app_commands.checks.has_permissions(moderate_members=True)
-    @app_commands.command(name="ping")
-    async def ping(self, interaction: discord.Interaction):
-        """Gets bot latency"""
-        embed = discord.Embed(title='**Current Latency**',
-                              description=f"Retrieved latest bot latency",
-                              color=0xeee657)
-        embed.add_field(name=None, value=f'Latency: **{round(self.bot.latency * 1000)}**ms')
-        await interaction.response.send_message(embed=embed)
+        self.logger.info(f"Moderation.cog: {interaction.user.display_name}[{interaction.user.id}] sent a report.")
 
     # Removes image posting permissions from specified user
     @app_commands.default_permissions(moderate_members=True)
@@ -97,14 +97,18 @@ class Moderation(commands.Cog):
             fin_msg = dis_msg
 
         await interaction.response.send_message(f"{fin_msg} for user {member.mention}")
+        self.logger.info(f"Moderation.cog: {fin_msg} for user {member.display_name}[{member.id}]")
 
+    # Create Invite
     @app_commands.command()
     async def create_invite(self, interaction: discord.Interaction, channel: discord.TextChannel,
                             age: int, uses: int):
         invite = await channel.create_invite(max_age=age, max_uses=uses)
         await interaction.channel.send(f"Successfully created invite: {str(invite)} for channel <#{channel.id}>")
+        self.logger.info(f"Moderation.cog: Created an invite: {str(invite)} for channel {channel.name}")
 
 # USER REPORT MODAL
+
 # class Report(discord.ui.Modal, title='Report'):
 #     report = discord.ui.TextInput(
 #         label="What are you reporting?",
