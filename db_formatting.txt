@@ -1,0 +1,43 @@
+_server.members:
+{
+	"discord_username": str["Username#0000"],
+	"discord_user_ID": int[700745497215762452],
+	"discord_creation_date": epoch[0],
+	"server_nickname": str["Nickname :)"],
+	"server_join_date": epoch[0],
+	"server_leave_date": epoch[0],
+	"is_booster": bool[false],
+	"past_usernames": dict{
+		"username": [
+			str["newest name#0000"],
+			str["2nd oldest#0000"],
+			str["3rd oldest#0000"],
+			str["4th oldest#0000"],
+			str["5th oldest#0000]"
+		],
+		"user_date_changed": [
+			epoch[0]
+			epoch[1]
+			epoch[2]
+			epoch[3]
+			epoch[4],
+		]
+	},
+	"past_nicknames": dict{
+		"nickname": [
+			str["New Nickname"],
+			str["2nd Nickname"],
+			str["3rd Nickname"],
+			str["4th Nickname"],
+			str["5th Nickname]"
+		],
+		"nick_date_changed": [
+			epoch[0]
+			epoch[1]
+			epoch[2]
+			epoch[3]
+			epoch[4],
+		]
+	},
+	soundcloud_URL: str["https://soundcloud.com/HurleybirdJr"]
+}

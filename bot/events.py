@@ -24,7 +24,7 @@ class Events(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_uri"))
+        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
         self.db = self.client["_events"]
 
     def get_vars(self):
@@ -49,40 +49,12 @@ class Events(commands.Cog):
     async def on_thread_delete(self, name):
         print(name)
 
-    class GDPR(discord.ui.Modal, title="ChillBot™ Privacy Policy"):
-        gdpr_toggle = discord.ui.Button(
-            label="Have you read and accepted the terms of the privacy policy?",
-            style=discord.ButtonStyle.success
-        )
-
-        async def on_submit(self, interaction: discord.Interaction):
-            await interaction.response.send_message(f'Thanks for your submission, {interaction.user.name}!',
-                                                    ephemeral=True)
-
-        async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-            await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
-
-            print(error)
-
     # TRACK SUBMIT
     @app_commands.command(name="submit", description="Submit your track for the Feedback Stream")
     async def submit(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(self.GDPR())
-        # TO CHECK USER HAS ACCEPTED PRIVACY POLICY
-        # server_db = self.client["_server"]
-
-        # Locate submission's ObjectID and delete record in DB
-        # user_id = interaction.user.id
-        # key = {"discord_user_ID": user_id}
-
-        # Search and check for privacy policy field, otherwise ask
-        # for result in server_db.members.find(key):
-        #    gdpr_check = {"_id": result["_id"]}
-        #    if gdpr_check:  # GDPR accepted proceed
-        #        print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
+        print("FINISH THIS")
 
     # TODO
-    #   GDPR check for users
     #   Feedback queue embed system
     #   User discord GET user profile pic for embed
     #   SoundCloud link command
@@ -184,7 +156,7 @@ class Events(commands.Cog):
         else:
             await interaction.response.send_message(f"Something broke in [fb] logic.")
 
-    # EVENT HOST ONLY
+    # EVENT MODE TOGGLE
     @app_commands.command(name="event", description="Sets Event Mode on and off.")
     @app_commands.checks.has_role("Event Host")
     @app_commands.choices(
@@ -224,7 +196,7 @@ class Events(commands.Cog):
             await interaction.response.send_message(f"Something broke in [event] logic.")
             pass
 
-    # EVENT HOST ONLY
+    # MOVE EVENT MEMBERS TO VC
     @app_commands.command(name="emove", description="Moves all members to #Hangout Room VC")
     @app_commands.checks.has_role("Event Host")
     async def eventmove(self, interaction: discord.Interaction):
@@ -237,7 +209,7 @@ class Events(commands.Cog):
             await member.move_to(self.vc_channel)
         await interaction.response.send_message(f"Moved all members to <#{self.vc_channel}>!")
 
-    # EVENT HOST ONLY
+    # GET EVENT MEMBER COUNT
     @app_commands.command(name="esize", description="Counts all members in the event")
     @app_commands.checks.has_role("Event Host")
     async def eventsize(self, interaction: discord.Interaction):

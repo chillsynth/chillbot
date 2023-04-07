@@ -32,7 +32,7 @@ class Greetings(commands.Cog):
         self.get_vars()
         print(f"`Greetings` cog loaded")
 
-    # On member update event
+    # Member Greeting Embed
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
         if not before.bot:
@@ -46,7 +46,7 @@ class Greetings(commands.Cog):
 
                     welcome_embed = discord.Embed(
                         description=f"Head over to <#{os.getenv('GET_ROLES_ID')}> to grab your roles."
-                                    f"\nAnd as always, **`GIVE`** <#{os.getenv('FEEDBACK_ID')}> "
+                                    f"\nAnd remember to **`GIVE`** <#{os.getenv('FEEDBACK_ID')}> "
                                     f"before you **`ASK`** for it!",
                         colour=13281772
                     )

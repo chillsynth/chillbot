@@ -5,6 +5,9 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_load(self):
+        print(f"`Fun` cog loaded")
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if "resonance" in message.content.lower():

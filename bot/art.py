@@ -11,6 +11,9 @@ class Art(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_load(self):
+        print(f"`Art` cog loaded")
+
         # VISUAL ARTIST ONLY
 
     @app_commands.command(name="comms", description="Select your comms status")

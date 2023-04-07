@@ -35,12 +35,10 @@ class ChillBot(commands.Bot):
 
         if self.testing_guild_id:
             guild = discord.Object(self.testing_guild_id)
-            # We'll copy in the global commands to test with:
+            # Copy global commands
             self.tree.copy_global_to(guild=guild)
-            # followed by syncing to the testing guild.
+            # Sync commands to tree
             await self.tree.sync(guild=guild)
-
-        # This would also be a good place to connect to a database
 
 
 async def main():
@@ -61,15 +59,14 @@ async def main():
         maxBytes=32 * 1024 * 1024,  # 32 MiB
         backupCount=5,  # Rotate through 5 files
     )
-    dt_fmt = '%Y-%m-%d %H:%M:%S'
+    dt_fmt = '%d-%m-%Y %H:%M:%S'
     formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     async with ClientSession() as our_client:
-        # 2. We become responsible for starting the bot.
         print(f"<Starting>")
-        extensions = ["members", "fun", "greetings", "events", "moderation", "art"]
+        extensions = ["members", "fun", "greetings", "events", "moderation", "art", "admin"]
         async with ChillBot(commands.when_mentioned,
                             web_client=our_client,
                             initial_extensions=extensions,
@@ -80,6 +77,4 @@ async def main():
                             status=discord.Status.online) as bot:
             await bot.start(os.getenv('TOKEN'))
 
-
-# For most use cases, after defining what needs to run, we can just tell asyncio to run it:
 asyncio.run(main())
