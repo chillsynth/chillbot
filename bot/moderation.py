@@ -41,6 +41,11 @@ class Moderation(commands.Cog):
                 await message.channel.send(content=f"<@{message.author.id}>, "
                                                    f"this channel is for uploading files **only**.",
                                            delete_after=6.0)
+            elif message.stickers:  # User sent a sticker
+                await message.delete()
+                await message.channel.send(content=f"<@{message.author.id}>, "
+                                                   f"this channel is for uploading files **only**.",
+                                           delete_after=6.0)
         elif not message.guild:  # Message is in DMs
             if "!secret" in message.content.lower():
                 # await message.response.send_modal(Report())
