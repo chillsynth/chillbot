@@ -30,17 +30,23 @@ class Moderation(commands.Cog):
     async def cog_load(self):
         print(f"`Moderation` cog loaded")
         self.get_vars()
-
+        
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.bot.user:  # Don't reply to itself. Could again be client for you
             return
-        if not message.guild:
+        if message.channel.name == "demos":  # In demos channel
+            if message.content:  # If message has anything but an attachment
+                await message.delete()
+                await message.channel.send(content=f"<@{message.author.id}>, "
+                                                   f"this channel is for uploading files **only**.",
+                                           delete_after=6.0)
+        elif not message.guild:  # Message is in DMs
             if "!secret" in message.content.lower():
                 # await message.response.send_modal(Report())
                 # chillsynth_id = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
                 # log_channel = discord.utils.get(chillsynth_id.channels, name="moderator-chat")
-
+                message.channel.send(f"Congrats <@{message.author.id}>, you found the secret.")
                 sys.stdout.write(f"DM received from {message.author.display_name}")
 
     @app_commands.default_permissions(moderate_members=True)
