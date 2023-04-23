@@ -6,9 +6,10 @@
 ![badge](https://img.shields.io/badge/V3-In%20Beta-%232e8fff?style=for-the-badge)
 ![badge](https://img.shields.io/badge/Release%20Date-Late%202023-%23fff?style=for-the-badge)
 
+![badge](https://img.shields.io/badge/YouTube--Feed%20Channel%20Upload%20Automation%20Replacement-Complete-%2300d100?style=for-the-badge)\
 ![badge](https://img.shields.io/badge/Revamp%20Feedback%20Stream%20setup%20w%2F%20queue%20and%20submit%20fix-In%20Progress-%23e6a100?style=for-the-badge)\
-![badge](https://img.shields.io/badge/Update%20auto--emoji%20to%20automate%20other%20emojis-Not%20Started-%23EC2D2B?style=for-the-badge)\
-![badge](https://img.shields.io/badge/Database%20integration%20for%20logging%20and%20fucntionality-In%20Progress-%23e6a100?style=for-the-badge)
+![badge](https://img.shields.io/badge/Update%20auto--emoji%20feature%20to%20automate%20other%20emojis-Not%20Started-%23EC2D2B?style=for-the-badge)\
+![badge](https://img.shields.io/badge/Database%20integration%20for%20logging%20and%20functionality-In%20Progress-%23e6a100?style=for-the-badge)
 
 ## > - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - <
 
