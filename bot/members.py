@@ -26,11 +26,11 @@ class Members(commands.Cog):
 
 class UserReport(discord.ui.Modal, title='Report'):
     reportedUserID = discord.ui.TextInput(
-        label="What would you like to report?",
+        label="User’s ID or Username (use if reporting user)",
         style=discord.TextStyle.short,
         placeholder="Include 'Username#0000' or user ID",
-        required=True,
-        min_length=6,
+        required=False,
+        min_length=4,
         max_length=38
     )
 
