@@ -20,4 +20,5 @@
 
 ![badge](https://img.shields.io/badge/Ticketing%20system%20for%20members%20using%20threads-v4-%23EC2D2B?style=for-the-badge)\
 ![badge](https://img.shields.io/badge/Warning%20system%20duration%20checker-v4-%23EC2D2B?style=for-the-badge)\
+![badge](https://img.shields.io/badge/Warning%206%20month%20auto--delete-v4-%23EC2D2B?style=for-the-badge)\
 ![badge](https://img.shields.io/badge/SoundCloud%20x%20Discord%20Link%20for%20Feedback%20Streams-v4-%23EC2D2B?style=for-the-badge)
