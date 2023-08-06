@@ -1,20 +1,349 @@
-import typing
-
 from discord.ext import commands
 from discord import app_commands
 import os
 import discord
 import pymongo
 import logging
+from datetime import datetime
 
 
 #   TODO:
-#       Feedback queue embed system
-#       User discord GET user profile pic for embed
 #       SoundCloud/Bandcamp auto-link in #event-chat
 #       Booster Check and queue system
 
 # import random
+
+class FeedbackQueueView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        # DB Setup
+        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))  # TODO: REPLACE LIVE ENV
+        self.db = self.client["_events"]
+
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
+
+    async def enable_buttons(self, channel_id: discord.Thread, message_id: int):
+        self.queue_button.disabled = False
+        self.queue_button.style = discord.ButtonStyle.success
+        self.edit_queue_submission.disabled = False
+        self.edit_queue_submission.style = discord.ButtonStyle.blurple
+
+        original_message_id: discord.Message = await channel_id.fetch_message(message_id)
+
+        await original_message_id.edit(view=self)  # Update current button view
+
+    # Sort through current Feedback Queue™ and return result
+    async def sort_feedback_queue(self, interaction: discord.Interaction, display: bool):
+        existing_queue = []
+        for document in self.db.feedback_queue.find({}):
+            print(document)
+            existing_queue.append(document)
+
+        print(existing_queue)
+
+        nitro_queue = []
+        normal_queue = []
+        for member in existing_queue:  # Separate nitro boosters from non-boosters
+            if member["has_priority"]:
+                nitro_queue.append(member)
+            elif not member["has_priority"]:
+                normal_queue.append(member)
+            else:
+                print("ERROR HERE FOR SOME REASON")  # TODO: log error here :)
+
+        def time_check(elem):
+            return elem["time_added"]
+
+        nitro_queue.sort(key=time_check, reverse=True)
+        normal_queue.sort(key=time_check, reverse=True)
+        merged_queue = nitro_queue + normal_queue  # Merge both queues together
+
+        print(f"Nitro Queue: {nitro_queue}")
+        print(f"Normal Queue: {normal_queue}")
+        print(f"Merged Queue: {merged_queue}")
+
+        final_queue = "# Feedback Queue™\n"
+
+        for user in merged_queue:
+            if user["track_done"]:  # Already played their track
+                final_queue += f"## <:XanderGlue_GREEN:1124041375093116998><@{user['track_user_ID']}>\n"
+            elif user["has_priority"]:  # Supporter
+                final_queue += f"## <:XanderGlue_NITRO:1124041876002066544><@{user['track_user_ID']}>\n"
+            elif not user["has_priority"]:  # Not supporter
+                final_queue += f"## <:XanderGlueBW:1123631048815808532><@{user['track_user_ID']}>\n"
+            else:
+                print("Something has gone terribly wrong")  # TODO: Log error here
+
+        # Search DB record for original thread message
+        key = {"feedback_queue_locator": "here i am"}
+        response_msg = None
+        for result in self.db.information.find(key):
+            response_msg = result
+
+        response_channel = interaction.client.get_channel(response_msg["channel_ID"])
+        response_msg = await response_channel.fetch_message(response_msg["message_ID"])
+
+        if display:
+            await response_msg.edit(content=f"{final_queue}")
+        else:
+            return final_queue
+
+    @discord.ui.button(label="Add To Queue",
+                       style=discord.ButtonStyle.grey,
+                       custom_id="add_queue",
+                       emoji="<:DynamicBladeBW:1122666182546296967>",
+                       disabled=True)
+    async def queue_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        button.disabled = True  # Disable all buttons until complete
+        self.edit_queue_submission.disabled = True
+
+        await interaction.response.defer()
+
+        # Search DB record for original thread message
+        key = {"thread_ID": interaction.channel.id}
+        search_result = None
+        for result in self.db.current_submissions.find(key):
+            search_result = result
+
+        original_message_id = await interaction.channel.fetch_message(search_result["thread_message_ID"])
+
+        await original_message_id.edit(view=self)  # Update current button view
+
+        event_role = discord.utils.get(interaction.guild.roles, name="Event Host")
+
+        if event_role in interaction.user.roles:  # ALLOWED TO PRESS THE BUTTON - Proceed with adding to queue
+            if button.custom_id == "add_queue":  # ADD TO QUEUE!
+                button.label = "Remove From Queue"
+                button.style = discord.ButtonStyle.danger
+                button.custom_id = "remove_queue"
+                button.emoji = "<:TangyCapacitorBW:1123631046508937379>"
+                button.disabled = False
+
+                self.edit_queue_submission.disabled = True
+                await original_message_id.edit(view=self)  # Update current button view
+
+                # Search DB record for submission data
+                key = {"thread_ID": interaction.channel.id}
+                search_result = None
+                for result in self.db.current_submissions.find(key):
+                    search_result = result
+                    print(result)
+
+                existing_queue = []
+                for document in self.db.feedback_queue.find({}):
+                    print(document)
+                    existing_queue.append(document)
+
+                if len(existing_queue) == 0:  # If queue is empty, then 1st entry
+                    print("EMPTY QUEUE!")
+                    # Submit new DB record with submission data
+                    self.db.feedback_queue.insert_one(
+                        {
+                            "track_user": str(search_result["thread_title"][:-13]),
+                            "has_priority": bool(search_result["has_priority"]),
+                            "time_added": int(search_result["time_added"]),
+                            "track_URL": str(search_result["submission_URL"]),
+                            "track_user_ID": int(search_result["user_ID"]),
+                            "track_thread_ID": int(interaction.channel.id),
+                            "track_done": False
+                        }
+                    )
+
+                    print(f"Added for {interaction.channel.name}")  # TODO: Remove this when done
+                    self.logger.info(f"Events.cog: Added  for {interaction.channel.name}")
+
+                    # https://discohook.org/?data=eyJtZXNzYWdlcyI6W3siZGF0YSI6eyJjb250ZW50IjpudWxsLCJlbWJlZHMiOlt7ImNvbG9yIjoxNjc0NDgzMCwiZmllbGRzIjpbeyJuYW1lIjoiQ1VSUkVOVExZIFBMQVlJTkciLCJ2YWx1ZSI6IlRlc3QgVHJhY2sgLSBIdXJsZXliaXJkIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiJTdWJtaXR0ZWQgQnkiLCJ2YWx1ZSI6IlVzZXJuYW1lIzAwMDEifV0sImZvb3RlciI6eyJ0ZXh0IjoiTGFzdCBVcGRhdGVkIn0sInRpbWVzdGFtcCI6IjIwMjMtMDEtMzBUMjM6MDE6MDAuMDAwWiIsInRodW1ibmFpbCI6eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9hdmF0YXJzLzM2MDg4MjkwMzkxMzIwMTY3NS9hX2I1YTYzMGVmYmJhMmNhMTY0NjRkMTRjYTQ4MmRjNWE3LmdpZj9zaXplPTEwMjQifX0seyJ0aXRsZSI6IlVQIE5FWFQiLCJjb2xvciI6MzQ5NzA4MywiZmllbGRzIjpbeyJuYW1lIjoiPiAxIiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gMiIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDMiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA0IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gNSIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDYiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA3IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gOCIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDkiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX1dLCJmb290ZXIiOnsidGV4dCI6Ikxhc3QgVXBkYXRlZCJ9LCJ0aW1lc3RhbXAiOiIyMDIzLTAxLTMwVDIzOjAxOjAwLjAwMFoifV0sInVzZXJuYW1lIjoiRmVlZGJhY2sgU3RyZWFt4oSiIFF1ZXVlIiwiYXR0YWNobWVudHMiOltdfX1dfQ
+
+                    await interaction.channel.send(
+                        content=f"**Added** <#{interaction.channel.id}> to the Feedback Stream™ Queue!")
+
+                else:  # Queue isn't empty - add track then sort queue
+                    # Submit new DB record with submission data
+                    self.db.feedback_queue.insert_one(
+                        {
+                            "track_user": str(search_result["thread_title"][:-13]),
+                            "has_priority": bool(search_result["has_priority"]),
+                            "time_added": int(search_result["time_added"]),
+                            "track_URL": str(search_result["submission_URL"]),
+                            "track_user_ID": int(search_result["user_ID"]),
+                            "track_thread_ID": int(interaction.channel.id),
+                            "track_done": False
+                        }
+                    )
+
+                    print(f"Added for {interaction.channel.name}")  # TODO: Remove this when done
+
+                    # https://discohook.org/?data=eyJtZXNzYWdlcyI6W3siZGF0YSI6eyJjb250ZW50IjpudWxsLCJlbWJlZHMiOlt7ImNvbG9yIjoxNjc0NDgzMCwiZmllbGRzIjpbeyJuYW1lIjoiQ1VSUkVOVExZIFBMQVlJTkciLCJ2YWx1ZSI6IlRlc3QgVHJhY2sgLSBIdXJsZXliaXJkIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiJTdWJtaXR0ZWQgQnkiLCJ2YWx1ZSI6IlVzZXJuYW1lIzAwMDEifV0sImZvb3RlciI6eyJ0ZXh0IjoiTGFzdCBVcGRhdGVkIn0sInRpbWVzdGFtcCI6IjIwMjMtMDEtMzBUMjM6MDE6MDAuMDAwWiIsInRodW1ibmFpbCI6eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9hdmF0YXJzLzM2MDg4MjkwMzkxMzIwMTY3NS9hX2I1YTYzMGVmYmJhMmNhMTY0NjRkMTRjYTQ4MmRjNWE3LmdpZj9zaXplPTEwMjQifX0seyJ0aXRsZSI6IlVQIE5FWFQiLCJjb2xvciI6MzQ5NzA4MywiZmllbGRzIjpbeyJuYW1lIjoiPiAxIiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gMiIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDMiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA0IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gNSIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDYiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA3IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gOCIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDkiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX1dLCJmb290ZXIiOnsidGV4dCI6Ikxhc3QgVXBkYXRlZCJ9LCJ0aW1lc3RhbXAiOiIyMDIzLTAxLTMwVDIzOjAxOjAwLjAwMFoifV0sInVzZXJuYW1lIjoiRmVlZGJhY2sgU3RyZWFt4oSiIFF1ZXVlIiwiYXR0YWNobWVudHMiOltdfX1dfQ
+
+                    await interaction.channel.send(
+                        content=f"**Added** <#{interaction.channel.id}> to the Feedback Stream™ Queue!")
+                    self.logger.info(f"Events.cog: Added for {interaction.channel.name}")
+
+            # REMOVE TRACK FROM QUEUE
+            elif button.custom_id == "remove_queue":
+                button.label = "Add To Queue"
+                button.style = discord.ButtonStyle.success
+                button.custom_id = "add_queue"
+                button.emoji = "<:DynamicBladeBW:1122666182546296967>"
+                button.disabled = False
+
+                self.edit_queue_submission.disabled = False  # Re-enable edits for submission
+                await original_message_id.edit(view=self)  # Update current button view
+
+                print("Permission check passed!")
+
+                # Locate submission's ObjectID and delete record in DB
+                key = {"track_thread_ID": interaction.channel.id}
+
+                # Search and delete DB record
+                for result in self.db.feedback_queue.find(key):
+                    delete_key = {"_id": result["_id"]}
+                    self.db.feedback_queue.delete_one(delete_key)
+                    print(
+                        f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # TODO: Send to logs
+
+                    # TODO: Re-organise feedback queue here
+
+                await interaction.channel.send(
+                    content=f"**Removed** <#{interaction.channel.id}> from the Feedback Stream™ Queue.")
+
+        else:  # NOT ALLOWED TO PRESS THE BUTTON - IGNORE
+            button.disabled = False  # Re-enable buttons
+            self.edit_queue_submission.disabled = False
+            await original_message_id.edit(view=self)  # Update current button view
+
+            await interaction.followup.send(
+                content=f"### <@{interaction.user.id}>, __only__ Event Hosts can add tracks to the Feedback Queue™",
+                ephemeral=True)
+
+        # Update the current queue
+        await self.sort_feedback_queue(interaction, True)
+
+    @discord.ui.button(label="Edit Submission",
+                       style=discord.ButtonStyle.grey,
+                       custom_id="edit_submission_button",
+                       emoji="<:ConnectedWaterBW:1123631044931891260>",
+                       disabled=True)
+    async def edit_queue_submission(self, interaction: discord.Interaction, button: discord.ui.Button):
+        button.disabled = True
+        self.queue_button.disabled = True
+        await interaction.response.defer()
+
+        # Search DB record for original thread message
+        key = {"thread_ID": interaction.channel.id}
+        search_result = None
+        for result in self.db.current_submissions.find(key):
+            search_result = result
+
+        original_message_id = await interaction.channel.fetch_message(search_result["thread_message_ID"])
+        await original_message_id.edit(view=self)
+
+        # Buttons are now disabled - continue
+        temp_edit_msg = await interaction.channel.send(content="## Please put the updated link/file below:")
+
+        def edit_check(m):
+            return m.author == interaction.user and m.channel == interaction.channel
+
+        msg = await interaction.client.wait_for("message", check=edit_check)
+        print(str(msg))
+
+        edited_url = "If you're reading this, something broke :)"
+        if msg.content:  # Message is a text URL - store as is
+            edited_url = msg.content
+            print(str(msg.content))
+        elif msg.attachments:  # Message contains a file - store file URL for playing
+            edited_url = msg.attachments[0].url
+            print(str(msg.attachments[0].url))
+
+        submission_updated_value = {
+            "$set": {
+                "user_ID": int(interaction.user.id),
+                "thread_ID": int(interaction.channel.id),
+                "submission_URL": str(edited_url),  # Update with new URL
+                "has_priority": search_result["has_priority"],
+                "time_added": int(datetime.now().strftime('%H%M%S')),
+                "thread_message_ID": search_result["thread_message_ID"],
+                "thread_title": search_result["thread_title"]
+            }
+        }
+
+        db_filter = {"user_ID": interaction.user.id}  # Filter by userID
+        self.db.current_submissions.update_one(db_filter, submission_updated_value)
+
+        await temp_edit_msg.delete()  # Submission edited - delete old message
+
+        await interaction.followup.send(
+            content=f"Changed submission to {edited_url}!",
+            ephemeral=True
+        )
+        button.disabled = False
+        self.queue_button.disabled = False
+        await original_message_id.edit(view=self)
+
+
+# TODO: Add slot system to prevent overflow
+
+class SubmitView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+        # DB Setup
+        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))  # TODO: REPLACE LIVE ENV
+        self.db = self.client["_events"]
+
+    @discord.ui.button(label="Create Submission",
+                       style=discord.ButtonStyle.success,
+                       custom_id="submission_button",
+                       emoji="<:DynamicBladeBW:1122666182546296967>")
+    async def test(self, interaction: discord.Interaction, button: discord.ui.Button):
+        thread_name = f"{interaction.user.global_name}-{str(datetime.now().strftime('%H%M%S%d%m%y'))}"
+        new_thread = await interaction.channel.create_thread(name=thread_name,
+                                                             invitable=False,
+                                                             type=discord.ChannelType.private_thread)
+
+        thread_msg = await new_thread.send(
+            f"||<@{interaction.user.id}> EVENT HOST PING HERE <3||\n"
+            f"### IMPORTANT : Private SoundCloud links must have **`s-`** in the URL like this:\n"
+            f"> **soundcloud.com/hurleybirdjr/example-track/`s-`1nqsSuAAk79**\n## ~\n"
+            f"## Please submit your SoundCloud __Private__ link\n### OR\n"
+            f"## Upload your `.mp3` / `.wav` / `.flac` file below :",
+            view=FeedbackQueueView())
+
+        await interaction.response.send_message(f"New thread created! <#{new_thread.id}>", ephemeral=True)
+
+        def edit_check(m):
+            return m.author == interaction.user and m.channel == new_thread
+
+        msg = await interaction.client.wait_for("message", check=edit_check)
+        print(str(msg))
+
+        edited_url = "If you're reading this, something broke :)"
+        if msg.content:  # Message is a text URL - store as is
+            edited_url = msg.content
+            print(str(msg.content))
+        elif msg.attachments:  # Message contains a file - store file URL for playing
+            edited_url = msg.attachments[0].url
+            print(str(msg.attachments[0].url))
+
+        is_boosting: bool = interaction.user in interaction.guild.premium_subscribers
+
+        self.db.current_submissions.insert_one(
+            {
+                "user_ID": int(interaction.user.id),
+                "thread_ID": int(new_thread.id),
+                "submission_URL": edited_url,
+                "has_priority": is_boosting,
+                "time_added": int(datetime.now().strftime('%H%M%S')),
+                "thread_title": thread_name,
+                "thread_message_ID": int(thread_msg.id)
+            }
+        )
+
+        await FeedbackQueueView().enable_buttons(new_thread, thread_msg.id)
+
+        await new_thread.send(content=f"New URL is {edited_url}")
+
 
 class Events(commands.Cog):
     def __init__(self, bot):
@@ -39,122 +368,66 @@ class Events(commands.Cog):
         self.logger.info(f"Events.cog: LOADED!")
 
     @commands.Cog.listener()
-    async def on_thread_create(self, thread):  # fixme: Not sure this might break other forum channels
-        if thread.parent.type == discord.ChannelType.forum:  # Check if thread is a FORUM channel
-            new_tag = discord.utils.get(thread.parent.available_tags, name="New")
-            await thread.add_tags(new_tag)
+    async def on_thread_delete(self, thread):
+        # Locate submission's ObjectID and delete record in DB
+        key = {"thread_ID": thread.id}
 
-    @commands.Cog.listener()
-    async def on_thread_delete(self, name):
-        self.logger.info(f"Events.cog: {name} Thread was deleted.")
+        # Search and delete DB record
+        for result in self.db.current_submissions.find(key):
+            delete_key = {"_id": result["_id"]}
+            self.db.current_submissions.delete_one(delete_key)
+            print(str(f"Deleted record for {thread.name} ObjectID:{result['_id']}"))  # TODO: Send to logs
+        self.logger.info(f"Events.cog: {thread.name} Thread was deleted.")
+
+    # FEEDBACK QUEUE COMMAND
+    @app_commands.command(name="feedback_queue", description="Shows the current Feedback Queue™")
+    @app_commands.checks.has_role("Event Host")
+    async def display_feedback_queue(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Generating the Feedback Queue™ now...", ephemeral=True)
+        response_msg: discord.Message = await interaction.channel.send("<:XanderGlueBW:1123631048815808532>")
+
+        feedback_queue_updated = {
+            "$set": {
+                "message_ID": response_msg.id,
+                "channel_ID": response_msg.channel.id,
+                "last_used": int(datetime.now().strftime('%H%M%S%d%m%y')),  # Update with new URL
+                "last_user_ID": interaction.user.id,
+                "feedback_queue_locator": "here i am"
+            }
+        }
+
+        db_filter = {"feedback_queue_locator": "here i am"}  # Filter by userID
+        self.db.information.update_one(db_filter, feedback_queue_updated)
+
+        await FeedbackQueueView().sort_feedback_queue(interaction, True)
+
+    # PLAY TRACKS FROM FEEDBACK QUEUE TODO: FINISH THIS
+    @app_commands.command(name="track", description="Play a track in the Feedback Queue™")
+    @app_commands.checks.has_role("Event Host")
+    async def feedback_queue_player(self, interaction: discord.Interaction,
+                                    queue_position: int):
+        current_queue = FeedbackQueueView().sort_feedback_queue(interaction, display=False)
+
+        # TODO:
+        #   Get chosen position and toggle as complete
+        #   Play the track
+        #   Update the existing queue
+
+        # TODO: Position editing in case of error
 
     # EVENT HOST ONLY
-    @app_commands.command(name="fb", description="Feedback Stream commands")
+    @app_commands.command(name="submit_system", description="Send the message with the button for submitting threads.")
     @app_commands.checks.has_role("Event Host")
-    @app_commands.choices(
-        option=[
-            discord.app_commands.Choice(name="Add", value=0),
-            discord.app_commands.Choice(name="Remove", value=1),
-            discord.app_commands.Choice(name="Decline", value=2),
-            discord.app_commands.Choice(name="Review", value=3)
-        ]
-    )
-    async def fb(self, interaction: discord.Interaction,
-                 option: discord.app_commands.Choice[int],
-                 reason: typing.Optional[str]):
-        # ADD TRACK TO QUEUE
-        if option.value == 0:
-            existing_queue = []
-            for document in self.db.feedback_queue.find({}):
-                print(document)
-                existing_queue.append(document)
-
-            if existing_queue is []:  # If queue is empty, then 1st entry
-                # Submit new DB record with submission data
-                self.db.feedback_queue.insert_one(
-                    {
-                        "submission_title": str(interaction.channel.name),
-                        "submission_user_ID": int(interaction.channel.owner.id),
-                        "submission_thread_ID": int(interaction.channel.id)
-                    }
-                )
-
-                print(f"Added  for {interaction.channel.name}")  # TODO: Remove this when done
-                self.logger.info(f"Events.cog: Added  for {interaction.channel.name}")
-
-            new_tag = discord.utils.get(interaction.channel.parent.available_tags, name="Added")
-            await interaction.channel.edit(applied_tags=[new_tag])
-
-            feedback_queue_thread = discord.utils.get(interaction.guild.threads, name="Feedback Stream™ Queue")
-
-            # https://discohook.org/?data=eyJtZXNzYWdlcyI6W3siZGF0YSI6eyJjb250ZW50IjpudWxsLCJlbWJlZHMiOlt7ImNvbG9yIjoxNjc0NDgzMCwiZmllbGRzIjpbeyJuYW1lIjoiQ1VSUkVOVExZIFBMQVlJTkciLCJ2YWx1ZSI6IlRlc3QgVHJhY2sgLSBIdXJsZXliaXJkIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiJTdWJtaXR0ZWQgQnkiLCJ2YWx1ZSI6IlVzZXJuYW1lIzAwMDEifV0sImZvb3RlciI6eyJ0ZXh0IjoiTGFzdCBVcGRhdGVkIn0sInRpbWVzdGFtcCI6IjIwMjMtMDEtMzBUMjM6MDE6MDAuMDAwWiIsInRodW1ibmFpbCI6eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9hdmF0YXJzLzM2MDg4MjkwMzkxMzIwMTY3NS9hX2I1YTYzMGVmYmJhMmNhMTY0NjRkMTRjYTQ4MmRjNWE3LmdpZj9zaXplPTEwMjQifX0seyJ0aXRsZSI6IlVQIE5FWFQiLCJjb2xvciI6MzQ5NzA4MywiZmllbGRzIjpbeyJuYW1lIjoiPiAxIiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gMiIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDMiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA0IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gNSIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDYiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA3IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gOCIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDkiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX1dLCJmb290ZXIiOnsidGV4dCI6Ikxhc3QgVXBkYXRlZCJ9LCJ0aW1lc3RhbXAiOiIyMDIzLTAxLTMwVDIzOjAxOjAwLjAwMFoifV0sInVzZXJuYW1lIjoiRmVlZGJhY2sgU3RyZWFt4oSiIFF1ZXVlIiwiYXR0YWNobWVudHMiOltdfX1dfQ
-
-            await feedback_queue_thread.send(content="Test1")
-
-            # 1 - Test Track by Hurleybird
-            await interaction.response.send_message(
-                f"**Added** {interaction.channel.name} to the Feedback Stream™ Queue!")
-
-        # REMOVE TRACK FROM QUEUE
-        elif option.value == 1:
-            new_tag = discord.utils.get(interaction.channel.parent.available_tags, name="New")
-            await interaction.channel.edit(applied_tags=[new_tag])
-
-            # Locate submission's ObjectID and delete record in DB
-            channel = interaction.channel.id
-            key = {"thread_ID": channel}
-
-            # Search and delete DB record
-            for result in self.db.feedback_queue.find(key):
-                delete_key = {"_id": result["_id"]}
-                self.db.feedback_queue.delete_one(delete_key)
-                print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
-
-            await interaction.response.send_message(
-                f"**Removed** {interaction.channel.name} from the queue.")
-
-        # DECLINE SUBMISSION WITH REASON
-        elif option.value == 2:
-            new_tag = discord.utils.get(interaction.channel.parent.available_tags, name="Declined")
-            await interaction.channel.edit(applied_tags=[new_tag])
-
-            # Locate submission's ObjectID and delete record in DB
-            channel = interaction.channel.id
-            key = {"thread_ID": channel}
-
-            for result in self.db.feedback_queue.find(key):
-                delete_key = {"_id": result["_id"]}
-                self.db.feedback_queue.delete_one(delete_key)
-                print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
-
-            await interaction.response.send_message(
-                f"**Declined** submission for reason: `{reason}`")
-
-        # NEEDS REVIEW WITH REASON
-        elif option.value == 3:
-            new_tag = discord.utils.get(interaction.channel.parent.available_tags, name="Needs Review")
-            await interaction.channel.edit(applied_tags=[new_tag])
-
-            # Locate submission's ObjectID and delete record in DB
-            channel = interaction.channel.id
-            key = {"thread_ID": channel}
-
-            for result in self.db.feedback_queue.find(key):
-                delete_key = {"_id": result["_id"]}
-                self.db.feedback_queue.delete_one(delete_key)
-                print(f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # Send to system logs
-
-            await interaction.response.send_message(f"**Needs Review** for reason: `{reason}`")
-
-        else:
-            await interaction.response.send_message(f"Something broke in [fb] logic.")
+    async def submission_button_ting(self, interaction: discord.Interaction):
+        await interaction.response.send_message(view=SubmitView())
+        # TODO: Setup feedback queue embed
 
     # EVENT MODE TOGGLE
     @app_commands.command(name="event", description="Sets Event Mode on and off.")
     @app_commands.checks.has_role("Event Host")
     @app_commands.choices(event_type=[
-            discord.app_commands.Choice(name="Stage", value=0),
-            discord.app_commands.Choice(name="Stream", value=1)
+        discord.app_commands.Choice(name="Stage", value=0),
+        discord.app_commands.Choice(name="Stream", value=1)
         ]
     )
     async def event(self, interaction: discord.Interaction,

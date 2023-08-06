@@ -4,7 +4,6 @@ import discord
 import pymongo
 import os
 import logging
-from datetime import *
 
 
 class Admin(commands.Cog):
@@ -22,6 +21,7 @@ class Admin(commands.Cog):
         self.logger.info(f"Admin.cog: LOADED!")
 
     # * ONLY - ONE TIME USE ONLY!!!!!  # TODO: Add "youtube_uploads" and other individual DB resets
+    # TODO: WIPE ALL RECORDS FIRST!!!!!
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.default_permissions(administrator=True)
     @app_commands.command(name="resetdb", description="Updates bot user DB - DO NOT USE!!")
@@ -44,6 +44,7 @@ class Admin(commands.Cog):
                         "server_nickname": str(f"{member.nick}"),
                         "server_join_date": int(member.joined_at.timestamp()),
                         "server_leave_date": None,  # Epoch will be filled if left server
+                        "server_resonance_count": 0,
                         "is_booster": bool(member_is_boosting),
                         "past_usernames": {
                             "username": ["", "", "", "", ""],

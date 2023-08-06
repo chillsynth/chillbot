@@ -4,8 +4,9 @@ import logging
 import pymongo
 import discord
 from discord.ext import commands, tasks
-# from discord import app_commands - USE FOR MANUAL
-from datetime import datetime
+from discord import app_commands  # - USE FOR MANUAL
+from datetime import datetime, timedelta
+from time import mktime
 import requests
 
 
@@ -24,9 +25,24 @@ class Extras(commands.Cog):
         self.logger.info(f"Extras.cog: LOADED!")
         self.logger.info(f"Extras.cog: YouTube Scanner started")
         self.youtube_scan.start()
+        self.resonance_update.start()
 
     async def cog_unload(self):
-        self.youtube_scan.cancel()  # Cancel the task loop when unloaded
+        # Cancel the task loops when unloaded
+        self.youtube_scan.cancel()
+        self.resonance_update.cancel()
+
+    async def cog_app_command_error(self,
+                                    interaction: discord.Interaction,
+                                    error: app_commands.errors.CommandOnCooldown) -> None:
+        cooldown_time = datetime.now() + timedelta(seconds=error.retry_after)
+        cooldown_time_tuple = (cooldown_time.year, cooldown_time.month, cooldown_time.day,
+                               cooldown_time.hour, cooldown_time.minute, cooldown_time.second)
+        print(cooldown_time)
+        await interaction.response.send_message(
+            f"Cooldown active! Please retry <t:{int(mktime(datetime(*cooldown_time_tuple).timetuple()))}:R>",
+            delete_after=error.retry_after
+        )
 
     # YOUTUBE SCANNER
     # MANUAL @app_commands.command(name="scan", description="Scan the YouTube channels and output details to console.")
@@ -110,6 +126,66 @@ class Extras(commands.Cog):
         # self.logger.info(f"Extras.cog: /scan by {interaction.user.id} complete!") - USE FOR MANUAL
         # await interaction.edit_original_response(content="Done!") - USE FOR MANUAL
 
+    @tasks.loop(minutes=20)  # TODO: NEED TO FIX GLOBAL COUNTER RATE LIMIT
+    async def resonance_update(self):
+        # Retrieve leaderboard DB
+        stats_out = None
+        for result in self.db.stats.find():
+            stats_out = result
+
+        resonance_channel = discord.utils.get(discord.Client.get_all_channels(),
+                                              id=int(os.getenv("DEV!_RESONANCE_ID")))  # TODO: REPLACE LIVE ENV
+        print(resonance_channel)
+
+        await resonance_channel.edit(name=f"Resonances: {stats_out['global_resonance_count'] + 1}")
+
+    # @app_commands.checks.cooldown(1, 120.0, key=None)  # TODO: RE-APPLY THE COOLDOWN!!
+    @app_commands.command(name="leaderboard")
+    async def leaderboard(self, interaction: discord.Interaction):
+        # Search DB record
+        search_result = None
+        for result in self.db.stats.find({}):
+            # print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # DEBUG
+            print(result)
+            search_result = result
+
+        leaderboard_embed = discord.Embed(
+            title="Resonance Leaderboard",
+            colour=0x8080a2,
+            timestamp=datetime.now()
+        )
+
+        leaderboard_embed.add_field(
+            name="1.",
+            value=f"<@{search_result['leaderboard'][0][0]}> --- x {search_result['leaderboard'][0][1]}",
+            inline=False
+        )
+        leaderboard_embed.add_field(
+            name="2.",
+            value=f"<@{search_result['leaderboard'][1][0]}> --- x {search_result['leaderboard'][1][1]}",
+            inline=False
+        )
+        leaderboard_embed.add_field(
+            name="3.",
+            value=f"<@{search_result['leaderboard'][2][0]}> --- x {search_result['leaderboard'][2][1]}",
+            inline=False
+        )
+        leaderboard_embed.add_field(
+            name="4.",
+            value=f"<@{search_result['leaderboard'][3][0]}> --- x {search_result['leaderboard'][3][1]}",
+            inline=False
+        )
+        leaderboard_embed.add_field(
+            name="5.",
+            value=f"<@{search_result['leaderboard'][4][0]}> --- x {search_result['leaderboard'][4][1]}",
+            inline=False
+        )
+
+        leaderboard_embed.set_image(url="https://cdn.discordapp.com/emojis/699652237135183982.webp")
+        leaderboard_embed.set_footer(text="Last Updated")
+
+        await interaction.response.send_message(embed=leaderboard_embed)
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if "resonance" in message.content.lower():
@@ -117,11 +193,71 @@ class Extras(commands.Cog):
             await message.add_reaction("<:resonanceDEV:1020142646787837992>")  # TODO: SWITCH EMOJI ID RESONANCE
             # <:resonance:699652237135183982> Actual emoji_ID when integrated
             # <:resonanceDEV:1020142646787837992> TEST Emoji
+
+            # Retrieve leaderboard DB
+            stats_out = None
+            for result in self.db.stats.find():
+                stats_out = result
+
+            # Retrieve user's record
+            member_out = None
+            for result in self.db.members.find({"discord_user_ID": message.author.id}):
+                member_out = result
+
+            self.db.members.update_one(
+                {"discord_user_ID": message.author.id},
+                {"$inc": {"server_resonance_count": 1}}
+            )
+
+            self.db.stats.update_one(
+                {"global_resonance_count": stats_out["global_resonance_count"]},
+                {"$inc": {"global_resonance_count": 1}}
+            )
+
+            # Check if leaderboard needs updating
+            new_leaderboard = stats_out["leaderboard"]
+            for leaderboard_index in range(0, 5):  # Loop through all 5 slots
+                current_user_id = stats_out["leaderboard"][leaderboard_index][0]
+                current_user_amount = stats_out["leaderboard"][leaderboard_index][1]
+
+                if current_user_id == message.author.id:  # User is on leaderboard
+                    new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                    new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                    new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+
+                    self.db.stats.update_one(
+                        {},
+                        {"$set": {"leaderboard": new_leaderboard}}
+                    )
+                    break
+                else:  # Not on leaderboard
+                    if current_user_amount >= member_out["server_resonance_count"]:  # Not bigger
+                        pass
+                    elif current_user_amount < member_out["server_resonance_count"]:  # Is bigger
+                        if current_user_id == 0:  # Leaderboard slot not filled
+                            new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                            new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                            new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+                        else:  # Leaderboard is filled
+                            new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                            new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                            new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+
+                        self.db.stats.update_one(
+                            {},
+                            {"$set": {"leaderboard": new_leaderboard}}
+                        )
+                        break
+
         if "electronic gem" in message.content.lower():
             self.logger.info(f"Reacted 'egem' to message: {message.jump_url}")
             await message.add_reaction("<:egemDEV:1062784474351403068>")  # TODO: SWITCH EMOJI ID ELECTRONIC GEMS
             # <:egem:852516812423430144> Actual emoji_ID when integrated
             # <:egemDEV:1062784474351403068> TEST Emoji
+
+        if message.stickers:  # Message contains a sticker
+            if message.stickers[0].name == "Live Albert Reaction":
+                await message.channel.send("<@615822182454657025>")
 
 
 async def setup(bot):

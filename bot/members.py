@@ -203,6 +203,7 @@ class Members(commands.Cog):
                     "server_nickname": str(f"{new_member.name}"),
                     "server_join_date": int(time.time()),
                     "server_leave_date": None,  # Epoch will be filled if left server
+                    "server_resonance_count": 0,  # Resonance count yippee reset
                     "is_booster": bool(False),
                     "past_usernames": {
                         "username": ["", "", "", "", ""],
@@ -301,6 +302,11 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
 
         print(error)
 
+# POLL CREATOR
+
+
+# POLL DISPLAY
+
 
 # USER REPORT MODAL
 class UserReport(discord.ui.Modal, title='Report'):
@@ -332,7 +338,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
         channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        mod_role = interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID')))
+        mod_role = interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID')))  # TODO: Change to Live
         await channel.send(f"{mod_role.mention}")
         await channel.send(embed=embed)
 

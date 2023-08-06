@@ -1,6 +1,7 @@
 import discord
 import sys
 import logging
+import os
 from discord.ext import commands
 from discord import app_commands
 
@@ -24,7 +25,7 @@ class Moderation(commands.Cog):
     async def cog_load(self):
         self.logger.info(f"Moderation.cog: LOADED!")
 
-    # #demos moderation and SECRET!!!!!
+    # #demos #feedback moderation and SECRET!!!!!
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.bot.user:  # Don't reply to itself
@@ -43,6 +44,22 @@ class Moderation(commands.Cog):
                                                    f"this channel is for uploading files **only**.",
                                            delete_after=6.0)
 
+        if message.channel.name == "feedback":  # In feedback channel
+            user_id = message.author.id
+            channel = message.channel
+            last_message = False
+
+            async for msg in channel.history(limit=1000, before=message):
+                if msg.author.id == message.author.id:  # Found last message from user
+                    last_message = msg
+                    print(last_message.content)
+                    break  # TODO FINISH FEEDBACK MODERATION
+
+            print(channel.history)
+
+            if not last_message:  # Last message not found - Limit too small / No message sent yet
+                print("No last message found.")
+
         elif not message.guild:  # Message is in DMs
             if "!secret" in message.content.lower():
                 # await message.response.send_modal(Report())
@@ -51,6 +68,12 @@ class Moderation(commands.Cog):
                 message.channel.send(f"Congrats <@{message.author.id}>, you found the secret.")
                 self.logger.info(f"Moderation.cog: {message.author.display_name}[{message.author.id}] found the secret")
                 sys.stdout.write(f"DM received from {message.author.display_name}[{message.author.id}]")
+
+    @app_commands.checks.has_role(int(os.getenv('DEV!_MOD_ROLE_ID')))  # Change to LIVE
+    @app_commands.command(name="username", description="Change the server username of a member")
+    async def username_change(self, interaction: discord.Interaction, member: discord.Member, new_username: str):
+        await member.edit(nick=new_username)  # TODO: Report to logs
+        await interaction.response.send_message(f"### Changed username of <@{member.id}> to `{new_username}`.")
 
     # REPORT MESSAGE
     @app_commands.default_permissions(use_application_commands=True)
