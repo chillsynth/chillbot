@@ -2,7 +2,7 @@ from discord.ext import commands
 from discord import app_commands
 import os
 import discord
-import pymongo
+import motor.motor_asyncio
 import logging
 from datetime import datetime
 
@@ -17,7 +17,7 @@ class FeedbackQueueView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))  # TODO: REPLACE LIVE ENV
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # TODO: REPLACE LIVE ENV
         self.db = self.client["_events"]
 
         self.logger = logging.getLogger('discord')
@@ -36,7 +36,7 @@ class FeedbackQueueView(discord.ui.View):
     # Sort through current Feedback Queue™ and return result
     async def sort_feedback_queue(self, interaction: discord.Interaction, display: bool):
         existing_queue = []
-        for document in self.db.feedback_queue.find({}):
+        async for document in self.db.feedback_queue.find({}):
             print(document)
             existing_queue.append(document)
 
@@ -78,7 +78,7 @@ class FeedbackQueueView(discord.ui.View):
         # Search DB record for original thread message
         key = {"feedback_queue_locator": "here i am"}
         response_msg = None
-        for result in self.db.information.find(key):
+        async for result in self.db.information.find(key):
             response_msg = result
 
         response_channel = interaction.client.get_channel(response_msg["channel_ID"])
@@ -103,7 +103,7 @@ class FeedbackQueueView(discord.ui.View):
         # Search DB record for original thread message
         key = {"thread_ID": interaction.channel.id}
         search_result = None
-        for result in self.db.current_submissions.find(key):
+        async for result in self.db.current_submissions.find(key):
             search_result = result
 
         original_message_id = await interaction.channel.fetch_message(search_result["thread_message_ID"])
@@ -126,19 +126,19 @@ class FeedbackQueueView(discord.ui.View):
                 # Search DB record for submission data
                 key = {"thread_ID": interaction.channel.id}
                 search_result = None
-                for result in self.db.current_submissions.find(key):
+                async for result in self.db.current_submissions.find(key):
                     search_result = result
                     print(result)
 
                 existing_queue = []
-                for document in self.db.feedback_queue.find({}):
+                async for document in self.db.feedback_queue.find({}):
                     print(document)
                     existing_queue.append(document)
 
                 if len(existing_queue) == 0:  # If queue is empty, then 1st entry
                     print("EMPTY QUEUE!")
                     # Submit new DB record with submission data
-                    self.db.feedback_queue.insert_one(
+                    await self.db.feedback_queue.insert_one(
                         {
                             "track_user": str(search_result["thread_title"][:-13]),
                             "has_priority": bool(search_result["has_priority"]),
@@ -160,7 +160,7 @@ class FeedbackQueueView(discord.ui.View):
 
                 else:  # Queue isn't empty - add track then sort queue
                     # Submit new DB record with submission data
-                    self.db.feedback_queue.insert_one(
+                    await self.db.feedback_queue.insert_one(
                         {
                             "track_user": str(search_result["thread_title"][:-13]),
                             "has_priority": bool(search_result["has_priority"]),
@@ -197,9 +197,9 @@ class FeedbackQueueView(discord.ui.View):
                 key = {"track_thread_ID": interaction.channel.id}
 
                 # Search and delete DB record
-                for result in self.db.feedback_queue.find(key):
+                async for result in self.db.feedback_queue.find(key):
                     delete_key = {"_id": result["_id"]}
-                    self.db.feedback_queue.delete_one(delete_key)
+                    await self.db.feedback_queue.delete_one(delete_key)
                     print(
                         f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # TODO: Send to logs
 
@@ -233,7 +233,7 @@ class FeedbackQueueView(discord.ui.View):
         # Search DB record for original thread message
         key = {"thread_ID": interaction.channel.id}
         search_result = None
-        for result in self.db.current_submissions.find(key):
+        async for result in self.db.current_submissions.find(key):
             search_result = result
 
         original_message_id = await interaction.channel.fetch_message(search_result["thread_message_ID"])
@@ -269,7 +269,7 @@ class FeedbackQueueView(discord.ui.View):
         }
 
         db_filter = {"user_ID": interaction.user.id}  # Filter by userID
-        self.db.current_submissions.update_one(db_filter, submission_updated_value)
+        await self.db.current_submissions.update_one(db_filter, submission_updated_value)
 
         await temp_edit_msg.delete()  # Submission edited - delete old message
 
@@ -289,7 +289,7 @@ class SubmitView(discord.ui.View):
         super().__init__(timeout=None)
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))  # TODO: REPLACE LIVE ENV
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # TODO: REPLACE LIVE ENV
         self.db = self.client["_events"]
 
     @discord.ui.button(label="Create Submission",
@@ -328,7 +328,7 @@ class SubmitView(discord.ui.View):
 
         is_boosting: bool = interaction.user in interaction.guild.premium_subscribers
 
-        self.db.current_submissions.insert_one(
+        await self.db.current_submissions.insert_one(
             {
                 "user_ID": int(interaction.user.id),
                 "thread_ID": int(new_thread.id),
@@ -361,7 +361,7 @@ class Events(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
         self.db = self.client["_events"]
 
     async def cog_load(self):
@@ -373,9 +373,9 @@ class Events(commands.Cog):
         key = {"thread_ID": thread.id}
 
         # Search and delete DB record
-        for result in self.db.current_submissions.find(key):
+        async for result in self.db.current_submissions.find(key):
             delete_key = {"_id": result["_id"]}
-            self.db.current_submissions.delete_one(delete_key)
+            await self.db.current_submissions.delete_one(delete_key)
             print(str(f"Deleted record for {thread.name} ObjectID:{result['_id']}"))  # TODO: Send to logs
         self.logger.info(f"Events.cog: {thread.name} Thread was deleted.")
 
@@ -397,7 +397,7 @@ class Events(commands.Cog):
         }
 
         db_filter = {"feedback_queue_locator": "here i am"}  # Filter by userID
-        self.db.information.update_one(db_filter, feedback_queue_updated)
+        await self.db.information.update_one(db_filter, feedback_queue_updated)
 
         await FeedbackQueueView().sort_feedback_queue(interaction, True)
 

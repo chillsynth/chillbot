@@ -2,8 +2,7 @@ import logging
 import logging.handlers
 import asyncio
 import os
-import pymongo
-from pymongo.server_api import ServerApi
+import motor.motor_asyncio
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -59,18 +58,18 @@ async def main():
     logger.addHandler(handler)
 
     # DB Setup
-    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"), server_api=ServerApi('1'))
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
     db = client.test
 
+    # Send a ping to confirm a successful connection
     try:
         client.admin.command('ping')
         print("Connected to MongoDB!")
+        # Show connection to DB
+        print(db)
+        logger.info(db)
     except Exception as e:
-        print(e)
-
-    # Show connection to DB
-    print(db)
-    logger.info(db)
+        logger.error(e)
 
     async with ClientSession() as our_client:
         print(f"<Starting>")

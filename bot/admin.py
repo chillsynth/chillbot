@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import app_commands
 import discord
-import pymongo
+import motor.motor_asyncio
 import os
 import logging
 
@@ -11,7 +11,7 @@ class Admin(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -36,7 +36,7 @@ class Admin(commands.Cog):
                     member_is_boosting = False
 
                 # Create new entry in DB
-                self.db.members.insert_one(
+                await self.db.members.insert_one(
                     {
                         "discord_username": str(f"{member.name}#{member.discriminator}"),
                         "discord_user_ID": int(member.id),

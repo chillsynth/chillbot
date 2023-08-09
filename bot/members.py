@@ -3,7 +3,7 @@ import os
 from discord.ext import commands
 from discord import app_commands
 import discord
-import pymongo
+import motor.motor_asyncio
 from datetime import *
 import time
 import logging
@@ -14,7 +14,7 @@ class Members(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -36,7 +36,7 @@ class Members(commands.Cog):
             # Search DB record
             key = {"discord_user_ID": new.id}
             search_result = None
-            for result in self.db.members.find(key):
+            async for result in self.db.members.find(key):
                 # print(f"Found {updated_username} under: ObjectID:{result['_id']}")  # DEBUG
 
                 search_result = result
@@ -64,7 +64,7 @@ class Members(commands.Cog):
             }
 
             db_filter = {"discord_user_ID": search_result["discord_user_ID"]}  # Filter by userID
-            self.db.members.update_one(db_filter, username_updated_value)
+            await self.db.members.update_one(db_filter, username_updated_value)
 
     # NICKNAME UPDATE
     @commands.Cog.listener()
@@ -77,7 +77,7 @@ class Members(commands.Cog):
             # Search DB record
             key = {"discord_user_ID": new.id}
             search_result = None
-            for result in self.db.members.find(key):
+            async for result in self.db.members.find(key):
                 # print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # DEBUG
 
                 search_result = result
@@ -105,7 +105,7 @@ class Members(commands.Cog):
             }
 
             db_filter = {"discord_user_ID": search_result["discord_user_ID"]}  # Filter by userID
-            self.db.members.update_one(db_filter, nickname_updated_value)
+            await self.db.members.update_one(db_filter, nickname_updated_value)
 
     # MEMBER JOIN PROCESS
     @commands.Cog.listener()
@@ -117,7 +117,7 @@ class Members(commands.Cog):
         # Search DB record
         key = {"discord_user_ID": new_member.id}
         search_result = None
-        for result in self.db.members.find(key):
+        async for result in self.db.members.find(key):
             # print(f"Existing record for {new_member.name}#{new_member.discriminator} "  # DEBUG
             #      f"found: ObjectID:{result['_id']}")
 
@@ -175,7 +175,7 @@ class Members(commands.Cog):
                 }
 
                 db_filter = {"discord_user_ID": search_result["discord_user_ID"]}  # Filter by userID
-                self.db.members.update_one(db_filter, username_updated_value)
+                await self.db.members.update_one(db_filter, username_updated_value)
 
             # Update Server Join/Leave Date
             server_updated_values = {
@@ -186,7 +186,7 @@ class Members(commands.Cog):
             }
 
             query = {"discord_user_ID": search_result["discord_user_ID"]}
-            self.db.members.update_one(query, server_updated_values)
+            await self.db.members.update_one(query, server_updated_values)
 
         elif search_result is None:
             self.logger.debug(f"No record found for {new_member.name}#{new_member.discriminator}; Creating new entry.")
@@ -195,7 +195,7 @@ class Members(commands.Cog):
             creation_date = new_member.created_at
             # print(str(creation_date))  # DEBUG
 
-            self.db.members.insert_one(
+            await self.db.members.insert_one(
                 {
                     "discord_username": str(f"{new_member.name}#{new_member.discriminator}"),
                     "discord_user_ID": int(new_member.id),
@@ -239,7 +239,7 @@ class Members(commands.Cog):
 class Socials(discord.ui.Modal, title='Social URL Management'):
     def __init__(self, interaction: discord.Interaction):
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
         self.db = self.client["_server"]
 
         super().__init__()
@@ -293,7 +293,7 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
         }
 
         db_filter = {"discord_user_ID": interaction.user.id}  # Filter by userID
-        self.db.members.update_one(db_filter, socials_updated_value)
+        await self.db.members.update_one(db_filter, socials_updated_value)
 
         await interaction.response.send_message(f'Changes have been saved, {interaction.user.name}!', ephemeral=True)
 

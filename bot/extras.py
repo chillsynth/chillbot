@@ -1,7 +1,7 @@
 import re
 import os
 import logging
-import pymongo
+import motor.motor_asyncio
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands  # - USE FOR MANUAL
@@ -15,7 +15,7 @@ class Extras(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -93,7 +93,7 @@ class Extras(commands.Cog):
             # Search DB record for current upload document
             key = {"youtube_channel_name": upload_channel}
             search_result = None
-            for result in self.db.youtube_uploads.find(key):
+            async for result in self.db.youtube_uploads.find(key):
                 search_result = result
                 # self.logger.debug(f"Extras.cog: Found {upload_channel} under: ObjectID:{result['_id']}")
 
@@ -113,7 +113,7 @@ class Extras(commands.Cog):
                 }
 
                 db_filter = {"youtube_channel_name": upload_channel}  # Filter by old upload title
-                self.db.youtube_uploads.update_one(db_filter, upload_updated_value)
+                await self.db.youtube_uploads.update_one(db_filter, upload_updated_value)
 
                 # Send new upload embed to #youtube-feed
                 self.logger.debug(f"New upload for [{upload_channel}] has been found! Posting to #youtube-feed.")
@@ -130,7 +130,7 @@ class Extras(commands.Cog):
     async def resonance_update(self):
         # Retrieve leaderboard DB
         stats_out = None
-        for result in self.db.stats.find():
+        async for result in self.db.stats.find():
             stats_out = result
 
         resonance_channel = discord.utils.get(discord.Client.get_all_channels(),
@@ -144,7 +144,7 @@ class Extras(commands.Cog):
     async def leaderboard(self, interaction: discord.Interaction):
         # Search DB record
         search_result = None
-        for result in self.db.stats.find({}):
+        async for result in self.db.stats.find({}):
             # print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # DEBUG
             print(result)
             search_result = result
@@ -196,20 +196,20 @@ class Extras(commands.Cog):
 
             # Retrieve leaderboard DB
             stats_out = None
-            for result in self.db.stats.find():
+            async for result in self.db.stats.find():
                 stats_out = result
 
             # Retrieve user's record
             member_out = None
-            for result in self.db.members.find({"discord_user_ID": message.author.id}):
+            async for result in self.db.members.find({"discord_user_ID": message.author.id}):
                 member_out = result
 
-            self.db.members.update_one(
+            await self.db.members.update_one(
                 {"discord_user_ID": message.author.id},
                 {"$inc": {"server_resonance_count": 1}}
             )
 
-            self.db.stats.update_one(
+            await self.db.stats.update_one(
                 {"global_resonance_count": stats_out["global_resonance_count"]},
                 {"$inc": {"global_resonance_count": 1}}
             )
@@ -222,10 +222,10 @@ class Extras(commands.Cog):
 
                 if current_user_id == message.author.id:  # User is on leaderboard
                     new_leaderboard.pop(leaderboard_index)  # Remove old entry
-                    new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                    new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add entry
                     new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
 
-                    self.db.stats.update_one(
+                    await self.db.stats.update_one(
                         {},
                         {"$set": {"leaderboard": new_leaderboard}}
                     )
@@ -243,7 +243,7 @@ class Extras(commands.Cog):
                             new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
                             new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
 
-                        self.db.stats.update_one(
+                        await self.db.stats.update_one(
                             {},
                             {"$set": {"leaderboard": new_leaderboard}}
                         )
