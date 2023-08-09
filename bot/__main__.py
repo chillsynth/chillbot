@@ -3,6 +3,7 @@ import logging.handlers
 import asyncio
 import os
 import pymongo
+from pymongo.server_api import ServerApi
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -58,7 +59,7 @@ async def main():
     logger.addHandler(handler)
 
     # DB Setup
-    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"), server_api=pymongo.ServerApi('1'))
+    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"), server_api=ServerApi('1'))
     db = client.test
 
     try:
