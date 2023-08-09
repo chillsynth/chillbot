@@ -58,8 +58,14 @@ async def main():
     logger.addHandler(handler)
 
     # DB Setup
-    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"))
+    client = pymongo.MongoClient(os.getenv("mongo_dev_uri"), server_api=pymongo.ServerApi('1'))
     db = client.test
+
+    try:
+        client.admin.command('ping')
+        print("Connected to MongoDB!")
+    except Exception as e:
+        print(e)
 
     # Show connection to DB
     print(db)
