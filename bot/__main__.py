@@ -6,9 +6,6 @@ from typing import List, Optional
 import discord
 from discord.ext import commands
 from aiohttp import ClientSession
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class ChillBot(commands.Bot):
