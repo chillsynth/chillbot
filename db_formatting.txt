@@ -39,5 +39,6 @@ _server.members:
 			epoch[4],
 		]
 	},
-	soundcloud_URL: str["https://soundcloud.com/HurleybirdJr"]
+	soundcloud_URL: str["https://soundcloud.com/hurleybirdjr"]
+	bandcamp_URL: str["https://hurleybirdjr.bandcamp.com"]
 }

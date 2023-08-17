@@ -9,7 +9,10 @@ from datetime import datetime
 
 #   TODO:
 #       SoundCloud/Bandcamp auto-link in #event-chat
-#       Booster Check and queue system
+#       Delete old queue and submissions when finished
+#       Remove submission for accidents or change
+#       Stream slot system to auto-lock new submissions with status
+#       Play track system that marks done tracks
 
 # import random
 
@@ -50,7 +53,8 @@ class FeedbackQueueView(discord.ui.View):
             elif not member["has_priority"]:
                 normal_queue.append(member)
             else:
-                print("ERROR HERE FOR SOME REASON")  # TODO: log error here :)
+                print("ERROR HERE FOR SOME REASON")
+                self.logger.warning(f"Events.cog: Unknown error separating users into queues in sort_feedback_queue()")
 
         def time_check(elem):
             return elem["time_added"]
@@ -73,7 +77,8 @@ class FeedbackQueueView(discord.ui.View):
             elif not user["has_priority"]:  # Not supporter
                 final_queue += f"## <:XanderGlueBW:1123631048815808532><@{user['track_user_ID']}>\n"
             else:
-                print("Something has gone terribly wrong")  # TODO: Log error here
+                print("Something has gone terribly wrong")
+                self.logger.warning(f"Events.cog: Unknown error appending user to final queue in sort_feedback_queue()")
 
         # Search DB record for original thread message
         key = {"feedback_queue_locator": "here i am"}
@@ -110,7 +115,7 @@ class FeedbackQueueView(discord.ui.View):
 
         await original_message_id.edit(view=self)  # Update current button view
 
-        event_role = discord.utils.get(interaction.guild.roles, name="Event Host")
+        event_role = discord.utils.get(interaction.guild.roles, name="Online")  # TODO: CHANGE TO EVENT HOST LIVE!!!
 
         if event_role in interaction.user.roles:  # ALLOWED TO PRESS THE BUTTON - Proceed with adding to queue
             if button.custom_id == "add_queue":  # ADD TO QUEUE!
@@ -151,7 +156,7 @@ class FeedbackQueueView(discord.ui.View):
                     )
 
                     print(f"Added for {interaction.channel.name}")  # TODO: Remove this when done
-                    self.logger.info(f"Events.cog: Added  for {interaction.channel.name}")
+                    self.logger.info(f"Events.cog: Added for {interaction.channel.name}")
 
                     # https://discohook.org/?data=eyJtZXNzYWdlcyI6W3siZGF0YSI6eyJjb250ZW50IjpudWxsLCJlbWJlZHMiOlt7ImNvbG9yIjoxNjc0NDgzMCwiZmllbGRzIjpbeyJuYW1lIjoiQ1VSUkVOVExZIFBMQVlJTkciLCJ2YWx1ZSI6IlRlc3QgVHJhY2sgLSBIdXJsZXliaXJkIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiJTdWJtaXR0ZWQgQnkiLCJ2YWx1ZSI6IlVzZXJuYW1lIzAwMDEifV0sImZvb3RlciI6eyJ0ZXh0IjoiTGFzdCBVcGRhdGVkIn0sInRpbWVzdGFtcCI6IjIwMjMtMDEtMzBUMjM6MDE6MDAuMDAwWiIsInRodW1ibmFpbCI6eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9hdmF0YXJzLzM2MDg4MjkwMzkxMzIwMTY3NS9hX2I1YTYzMGVmYmJhMmNhMTY0NjRkMTRjYTQ4MmRjNWE3LmdpZj9zaXplPTEwMjQifX0seyJ0aXRsZSI6IlVQIE5FWFQiLCJjb2xvciI6MzQ5NzA4MywiZmllbGRzIjpbeyJuYW1lIjoiPiAxIiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gMiIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDMiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA0IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gNSIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDYiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX0seyJuYW1lIjoiPiA3IiwidmFsdWUiOiJ0cmFjayBuYW1lIC0gYXJ0aXN0IG5hbWUiLCJpbmxpbmUiOnRydWV9LHsibmFtZSI6Ij4gOCIsInZhbHVlIjoidHJhY2sgbmFtZSAtIGFydGlzdCBuYW1lIiwiaW5saW5lIjp0cnVlfSx7Im5hbWUiOiI-IDkiLCJ2YWx1ZSI6InRyYWNrIG5hbWUgLSBhcnRpc3QgbmFtZSIsImlubGluZSI6dHJ1ZX1dLCJmb290ZXIiOnsidGV4dCI6Ikxhc3QgVXBkYXRlZCJ9LCJ0aW1lc3RhbXAiOiIyMDIzLTAxLTMwVDIzOjAxOjAwLjAwMFoifV0sInVzZXJuYW1lIjoiRmVlZGJhY2sgU3RyZWFt4oSiIFF1ZXVlIiwiYXR0YWNobWVudHMiOltdfX1dfQ
 
@@ -201,7 +206,8 @@ class FeedbackQueueView(discord.ui.View):
                     delete_key = {"_id": result["_id"]}
                     await self.db.feedback_queue.delete_one(delete_key)
                     print(
-                        f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")  # TODO: Send to logs
+                        f"Deleted record for {interaction.channel.name} ObjectID:{result['_id']}")
+                    self.logger.info(f"Events.cog: Deleted record for {interaction.channel.name} in DB")
 
                     # TODO: Re-organise feedback queue here
 
@@ -296,18 +302,19 @@ class SubmitView(discord.ui.View):
                        style=discord.ButtonStyle.success,
                        custom_id="submission_button",
                        emoji="<:DynamicBladeBW:1122666182546296967>")
-    async def test(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def test(self, interaction: discord.Interaction, button: discord.Button):
         thread_name = f"{interaction.user.global_name}-{str(datetime.now().strftime('%H%M%S%d%m%y'))}"
         new_thread = await interaction.channel.create_thread(name=thread_name,
                                                              invitable=False,
                                                              type=discord.ChannelType.private_thread)
 
         thread_msg = await new_thread.send(
-            f"||<@{interaction.user.id}> EVENT HOST PING HERE <3||\n"
+            f"||<@{interaction.user.id}><@&{os.getenv('DEV!_EVENT_ROLE_ID')}>||\n"
             f"### IMPORTANT : Private SoundCloud links must have **`s-`** in the URL like this:\n"
             f"> **soundcloud.com/hurleybirdjr/example-track/`s-`1nqsSuAAk79**\n## ~\n"
-            f"## Please submit your SoundCloud __Private__ link\n### OR\n"
-            f"## Upload your `.mp3` / `.wav` / `.flac` file below :",
+            f"## Please upload your `.mp3` / `.wav` / `.flac` file below\n### OR\n"
+            f"## submit your SoundCloud __Private__ link:",
+
             view=FeedbackQueueView())
 
         await interaction.response.send_message(f"New thread created! <#{new_thread.id}>", ephemeral=True)
@@ -376,15 +383,17 @@ class Events(commands.Cog):
         async for result in self.db.current_submissions.find(key):
             delete_key = {"_id": result["_id"]}
             await self.db.current_submissions.delete_one(delete_key)
-            print(str(f"Deleted record for {thread.name} ObjectID:{result['_id']}"))  # TODO: Send to logs
-        self.logger.info(f"Events.cog: {thread.name} Thread was deleted.")
+            print(str(f"Deleted record for {thread.name} ObjectID:{result['_id']}"))
+            self.logger.info(f"Events.cog: {thread.name} - DB entry has been deleted.")
+
+        self.logger.info(f"Events.cog: {thread.name} - thread has been deleted.")
 
     # FEEDBACK QUEUE COMMAND
     @app_commands.command(name="feedback_queue", description="Shows the current Feedback Queue™")
     @app_commands.checks.has_role("Event Host")
     async def display_feedback_queue(self, interaction: discord.Interaction):
         await interaction.response.send_message("Generating the Feedback Queue™ now...", ephemeral=True)
-        response_msg: discord.Message = await interaction.channel.send("<:XanderGlueBW:1123631048815808532>")
+        response_msg: discord.Message = await interaction.channel.send("<a:Combined_Load:1131251697734389910>")
 
         feedback_queue_updated = {
             "$set": {
@@ -405,22 +414,67 @@ class Events(commands.Cog):
     @app_commands.command(name="track", description="Play a track in the Feedback Queue™")
     @app_commands.checks.has_role("Event Host")
     async def feedback_queue_player(self, interaction: discord.Interaction,
-                                    queue_position: int):
-        current_queue = FeedbackQueueView().sort_feedback_queue(interaction, display=False)
+                                    q_user: discord.Member):
+        # Save track URL and update status
+        key = {"track_user_ID": q_user.id}
+        next_track_url = ""
+        fbq_result = None
+        async for result in self.db.feedback_queue.find(key):
+            next_track_url: str = result["track_URL"]
+            fbq_result = result
+
+        update_feedback_submission = {
+            "$set": {
+                "track_done": True  # CHANGED THIS BTW
+            }
+        }
+
+        db_filter = {"track_user_ID": q_user.id}  # Filter by user ID
+        await self.db.feedback_queue.update_one(db_filter, update_feedback_submission, upsert=False)
+
+        await FeedbackQueueView().sort_feedback_queue(interaction, True)  # Update new Feedback Queue state
+
+        # Search and delete DB record
+        key = {"discord_user_ID": q_user.id}
+        next_soundcloud: str = ""
+        next_bandcamp: str = ""
+        async for result in self.client["_server"].members.find(key):
+            next_soundcloud = result["soundcloud_URL"]
+            next_bandcamp = result["bandcamp_URL"]
+
+        # Search and delete DB record
+        key = {"track_user_ID": q_user.id}
+        next_track_url = ""
+        async for result in self.db.feedback_queue.find(key):
+            next_track_url: str = result["track_URL"]
+
+        # Send play message for bot
+        if next_track_url != "":  # URL is available to play - Update queue
+            await interaction.response.send_message(f";play {next_track_url}", delete_after=1)
+            if next_soundcloud == "" and next_bandcamp == "":
+                await interaction.channel.send(f"No social links found for {q_user.display_name} :(\n\n"
+                                               f"<@>You can setup your SoundCloud _and/or_ Bandcamp links using:\n"
+                                               f"### `/socials`")
+            else:
+                await interaction.channel.send(f"{next_soundcloud}\n{next_bandcamp}")
+
+        else:
+            await interaction.channel.send(f"{q_user.display_name} has no URL - <@{os.getenv('HURLEY_ID')}>: DB ERROR!")
+            self.logger.warning(f"Events.cog: No URL found for {q_user.display_name}'s submission in DB")
 
         # TODO:
         #   Get chosen position and toggle as complete
-        #   Play the track
+        #   Play the track ¬/
         #   Update the existing queue
 
-        # TODO: Position editing in case of error
+        # TODO: Position editing in case of manual change needed
 
     # EVENT HOST ONLY
     @app_commands.command(name="submit_system", description="Send the message with the button for submitting threads.")
     @app_commands.checks.has_role("Event Host")
     async def submission_button_ting(self, interaction: discord.Interaction):
         await interaction.response.send_message(view=SubmitView())
-        # TODO: Setup feedback queue embed
+        # TODO: ADD A Close submissions command and confirm queue
 
     # EVENT MODE TOGGLE
     @app_commands.command(name="event", description="Sets Event Mode on and off.")
@@ -428,7 +482,7 @@ class Events(commands.Cog):
     @app_commands.choices(event_type=[
         discord.app_commands.Choice(name="Stage", value=0),
         discord.app_commands.Choice(name="Stream", value=1)
-        ]
+    ]
     )
     async def event(self, interaction: discord.Interaction,
                     event_type: discord.app_commands.Choice[int],

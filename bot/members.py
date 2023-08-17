@@ -235,12 +235,15 @@ class Members(commands.Cog):
         await interaction.response.send_modal(UserReport())
 
 
-# SOCIALS MODAL - TODO: Finish SoundCloud/Bandcamp socials command
+# SOCIALS MODAL
 class Socials(discord.ui.Modal, title='Social URL Management'):
     def __init__(self, interaction: discord.Interaction):
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # REPLACE LIVE ENV
         self.db = self.client["_server"]
+
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
 
         super().__init__()
 
@@ -257,11 +260,13 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
         try:
             current_soundcloud_url = search_result['soundcloud_url']
         except KeyError:
-            pass  # TODO: Add logging for no SoundCloud URL
+            self.logger.debug(f"Members.cog: {interaction.user.global_name} has no SoundCloud URL.")
+            pass
         try:
             current_bandcamp_url = search_result['bandcamp_url']
         except KeyError:
-            pass  # TODO: Add logging for no bandcamp URL
+            self.logger.debug(f"Members.cog: {interaction.user.global_name} has no Bandcamp URL.")
+            pass
 
         self.soundcloud_user_url = discord.ui.TextInput(
             label="SoundCloud Profile URL",
@@ -269,6 +274,7 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
             placeholder="https://soundcloud.com/<your name>",
             default=f"{current_soundcloud_url}",
             required=False,
+            min_length=23,  # https://soundcloud.com/
             max_length=128
         )
 
@@ -278,6 +284,7 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
             placeholder="https://<your name>.bandcamp.com",
             default=f"{current_bandcamp_url}",
             required=False,
+            min_length=21,  # https:// + .bandcamp.com
             max_length=128
         )
 
@@ -294,16 +301,15 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
 
         db_filter = {"discord_user_ID": interaction.user.id}  # Filter by userID
         await self.db.members.update_one(db_filter, socials_updated_value)
-
+        self.logger.info(f"Members.cog: {interaction.user.global_name} has updated their Socials()")
         await interaction.response.send_message(f'Changes have been saved, {interaction.user.name}!', ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
-
+        self.logger.error(f"Members.cog: Unable to store {interaction.user.global_name}'s Socials() response")
         print(error)
 
 # POLL CREATOR
-
 
 # POLL DISPLAY
 
@@ -316,7 +322,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         placeholder="Include 'Username#0000' or user ID",
         required=True,
         min_length=6,
-        max_length=38
+        max_length=36
     )
 
     report = discord.ui.TextInput(
@@ -329,7 +335,7 @@ class UserReport(discord.ui.Modal, title='Report'):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        embed = discord.Embed(title=f"Username / ID: {self.reportedUserID}",
+        embed = discord.Embed(title=f"Reported Username / ID: {self.reportedUserID}",
                               description=f"**{self.report}**\n",
                               timestamp=datetime.now(),
                               colour=discord.Colour.red())
@@ -338,11 +344,12 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
         channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        mod_role = interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID')))  # TODO: Change to Live
-        await channel.send(f"{mod_role.mention}")
+        await channel.send(f"### {interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID'))).mention}"
+                           f"\n# <:Discord_System_MessageInteractio:1140060017853210696>  **NEW REPORT**")  # TODO: REPLACE LIVE ENV
         await channel.send(embed=embed)
 
-        await interaction.response.send_message(f'Thanks for your report, {interaction.user.name}!', ephemeral=True)
+        await interaction.response.send_message(f'Thanks for your report, {interaction.user.display_name}!',
+                                                ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)

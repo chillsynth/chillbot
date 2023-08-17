@@ -26,8 +26,11 @@ class Admin(commands.Cog):
     @app_commands.default_permissions(administrator=True)
     @app_commands.command(name="resetdb", description="Updates bot user DB - DO NOT USE!!")
     async def reset_db(self, interaction: discord.Interaction):
+        # Reset members
+        await self.db.members.delete_many({})  # DELETE DB
         async for member in interaction.guild.fetch_members(limit=None):
-            print(member)  # TODO: Report to [low] system logs
+            print(member)
+            self.logger.debug(f"Admin.cog: Processing: {member} into DB")
 
             if member.bot is not True:  # Check for bot and skip if True
                 if member.premium_since is not None:  # Check boosting status
@@ -53,15 +56,20 @@ class Admin(commands.Cog):
                         "past_nicknames": {
                             "nickname": ["", "", "", "", ""],
                             "nick_name_changed": ["", "", "", "", ""]
-                        }
+                        },
+                        "soundcloud_URL": "",
+                        "bandcamp_URL": ""
                     }
                 )
             elif member.bot is True:
-                print("Bot! Skipping...")  # TODO: Report to [low] system logs
+                print("Bot! Skipping...")
+                self.logger.debug(f"Admin.cog: Skipping bot: {member}")
             else:
-                print("Something broke!")  # TODO: Report to [high] system logs
+                print("Something broke!")
+                self.logger.error(f"Admin.cog: Unknown error fetching member in reset_db()")
 
-        await interaction.response.send_message(f"Done! :)")  # TODO: Report to [med] system logs
+        await interaction.response.send_message(f"Done! :)")
+        self.logger.warning(f"Admin.cog: All DB's reset!!!")
 
     # Gets bot latency
     @app_commands.default_permissions(administrator=True)

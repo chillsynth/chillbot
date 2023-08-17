@@ -24,7 +24,7 @@ class Greetings(commands.Cog):
                 self.logger.info(f"Greetings.cog: GETTING VARS READY...")
 
                 # Get the online for lookup later
-                self.current_guild = self.bot.get_guild(int(os.getenv("DEV!_GUILD_ID")))  # TODO: REPLACE DEV ENV
+                self.current_guild = self.bot.get_guild(int(os.getenv("DEV!_GUILD_ID")))  # TODO: REPLACE LIVE ENV
                 self.online_role = discord.utils.get(self.current_guild.roles, name="Online")
 
                 self.vars_loaded = True
@@ -54,7 +54,7 @@ class Greetings(commands.Cog):
                                     f"\nAnd remember to **`GIVE`** <#{os.getenv('DEV!_FEEDBACK_ID')}> "
                                     f"before you **`ASK`** for it!",
                         colour=13281772
-                    )  # TODO: REPLACE DEV ENV
+                    )  # TODO: REPLACE LIVE ENV
                     welcome_embed.set_footer(text=f"If you have any questions, feel free to @ one of our moderators!")
 
                     await lounge_channel.send(f"**Hello {before.mention} and welcome to ChillSynth!**")

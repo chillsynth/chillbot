@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# TODO: Nick suggested PROD AND DEV ENV variable toggle or something
+
 class ChillBot(commands.Bot):
     def __init__(
             self,
@@ -83,5 +85,6 @@ async def main():
                                                       url="https://nightride.fm/eq?station=chillsynth"),
                             status=discord.Status.online) as bot:
             await bot.start(os.getenv('DEV!_TOKEN'))
+
 
 asyncio.run(main())

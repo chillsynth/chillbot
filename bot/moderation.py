@@ -1,6 +1,10 @@
 import discord
 import sys
 import logging
+import time
+from datetime import datetime, timedelta
+from tzlocal import get_localzone
+import pytz
 import os
 from discord.ext import commands
 from discord import app_commands
@@ -44,20 +48,51 @@ class Moderation(commands.Cog):
                                                    f"this channel is for uploading files **only**.",
                                            delete_after=6.0)
 
-        if message.channel.name == "feedback":  # In feedback channel
-            user_id = message.author.id
+        if message.channel.name == "feedback":  # Message is in feedback channel
             channel = message.channel
-            last_message = False
+            last_message: None = None
 
             async for msg in channel.history(limit=1000, before=message):
                 if msg.author.id == message.author.id:  # Found last message from user
-                    last_message = msg
-                    print(last_message.content)
-                    break  # TODO FINISH FEEDBACK MODERATION
+                    last_message: discord.Message = msg
+                    break
 
-            print(channel.history)
+            message_is_valid = True
+            awa_datetime = (datetime.now(pytz.timezone(get_localzone().key)) - timedelta(weeks=1))
 
-            if not last_message:  # Last message not found - Limit too small / No message sent yet
+            # Check message isn't a track
+            if last_message.created_at > awa_datetime:  # Last message is newer than 1 week - ALL GOOD
+                print("Message is new enough, carry on")
+            elif last_message.created_at <= awa_datetime:  # Last message is older than 1 week - PERFORM CHECKS
+                print("Message is too old")
+                if message.attachments:  # Check if current message contains track link
+                    print("New message contains attachments")
+                    message_is_valid = False
+                if not message.content.find("http"):  # Check if current message contains track URL
+                    print(message.content.find("http"))
+                    print("Message contains http link")
+                    message_is_valid = False
+            else:
+                print("Logic broke lol")
+
+            if not message_is_valid:
+                print(message.content)
+                await message.delete()
+
+                current_unix = int(time.time() + 30)
+
+                embed = discord.Embed()
+                embed.description = (
+                    f"**<:Discord_Reply:1140059585353363458> "
+                    f"Please read the channel guidelines above \n and give feedback __before__ posting. \n\n"
+                    f"If you're unsure, feel free to ask! <:Discord_Friend:1140071944008515616>**\n\n"
+                    f"<:Discord_Timeout:1140060025876922482> This message will expire <t:{current_unix}:R>"
+                )
+                await message.channel.send(content=f"<@{message.author.id}>", embed=embed, delete_after=30.0)
+            else:
+                print("All checks passed, good to go :)")
+
+            if not last_message:  # Last message not found - Limit too small / No message sent yet - Likely out of date
                 print("No last message found.")
 
         elif not message.guild:  # Message is in DMs
@@ -72,8 +107,9 @@ class Moderation(commands.Cog):
     @app_commands.checks.has_role(int(os.getenv('DEV!_MOD_ROLE_ID')))  # Change to LIVE
     @app_commands.command(name="username", description="Change the server username of a member")
     async def username_change(self, interaction: discord.Interaction, member: discord.Member, new_username: str):
-        await member.edit(nick=new_username)  # TODO: Report to logs
+        await member.edit(nick=new_username)
         await interaction.response.send_message(f"### Changed username of <@{member.id}> to `{new_username}`.")
+        self.logger.info(f"Moderation.cog: {member.display_name} manually changed to {new_username}")
 
     # REPORT MESSAGE
     @app_commands.default_permissions(use_application_commands=True)
@@ -129,6 +165,7 @@ class Moderation(commands.Cog):
         invite = await channel.create_invite(max_age=age, max_uses=uses)
         await interaction.channel.send(f"Successfully created invite: {str(invite)} for channel <#{channel.id}>")
         self.logger.info(f"Moderation.cog: Created an invite: {str(invite)} for channel {channel.name}")
+
 
 # USER REPORT MODAL
 

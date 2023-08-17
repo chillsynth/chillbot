@@ -133,11 +133,10 @@ class Extras(commands.Cog):
         async for result in self.db.stats.find():
             stats_out = result
 
-        resonance_channel = discord.utils.get(discord.Client.get_all_channels(),
-                                              id=int(os.getenv("DEV!_RESONANCE_ID")))  # TODO: REPLACE LIVE ENV
-        print(resonance_channel)
+        the_guild: discord.Guild = await self.bot.fetch_guild(int(os.getenv("DEV!_GUILD_ID")))
+        resonance_channel = await the_guild.fetch_channel(int(os.getenv("DEV!_RESONANCE_ID")))  # TODO: REPLACE LIVE ENV
 
-        await resonance_channel.edit(name=f"Resonances: {stats_out['global_resonance_count'] + 1}")
+        await resonance_channel.edit(name=f"Resonances: {stats_out['global_resonance_count']}")  # +1 ????
 
     # @app_commands.checks.cooldown(1, 120.0, key=None)  # TODO: RE-APPLY THE COOLDOWN!!
     @app_commands.command(name="leaderboard")
@@ -190,7 +189,7 @@ class Extras(commands.Cog):
     async def on_message(self, message):
         if "resonance" in message.content.lower():
             self.logger.info(f"Reacted 'resonance' to message: {message.jump_url}")
-            await message.add_reaction("<:resonanceDEV:1020142646787837992>")  # TODO: SWITCH EMOJI ID RESONANCE
+            await message.add_reaction("<:resonanceDEV:1020142646787837992>")  # TODO: REPLACE LIVE EMOJI
             # <:resonance:699652237135183982> Actual emoji_ID when integrated
             # <:resonanceDEV:1020142646787837992> TEST Emoji
 
@@ -199,10 +198,49 @@ class Extras(commands.Cog):
             async for result in self.db.stats.find():
                 stats_out = result
 
-            # Retrieve user's record
+            # Retrieve user's record with +1 before user
             member_out = None
             async for result in self.db.members.find({"discord_user_ID": message.author.id}):
                 member_out = result
+
+                # Check if leaderboard needs updating
+                new_leaderboard = stats_out["leaderboard"]
+                for leaderboard_index in range(0, 5):  # Loop through all 5 slots
+                    current_user_id = stats_out["leaderboard"][leaderboard_index][0]
+                    current_user_amount = stats_out["leaderboard"][leaderboard_index][1]
+
+                    if current_user_id == message.author.id:  # User is on leaderboard
+                        new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                        new_leaderboard.append(
+                            [message.author.id, member_out["server_resonance_count"] + 1])  # Add entry
+                        new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+
+                        await self.db.stats.update_one(
+                            {},
+                            {"$set": {"leaderboard": new_leaderboard}}
+                        )
+                        break
+                    else:  # Not on leaderboard
+                        if current_user_amount >= member_out["server_resonance_count"] + 1:  # Not bigger
+                            print("smaller than leaderboard amount")
+                            pass
+                        elif current_user_amount < member_out["server_resonance_count"] + 1:  # Is bigger
+                            if current_user_id == 0:  # Leaderboard slot not filled
+                                new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                                new_leaderboard.append(
+                                    [message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                                new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+                            else:  # Leaderboard is filled
+                                new_leaderboard.pop(leaderboard_index)  # Remove old entry
+                                new_leaderboard.append(
+                                    [message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
+                                new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
+
+                            await self.db.stats.update_one(
+                                {},
+                                {"$set": {"leaderboard": new_leaderboard}}
+                            )
+                            break
 
             await self.db.members.update_one(
                 {"discord_user_ID": message.author.id},
@@ -214,44 +252,9 @@ class Extras(commands.Cog):
                 {"$inc": {"global_resonance_count": 1}}
             )
 
-            # Check if leaderboard needs updating
-            new_leaderboard = stats_out["leaderboard"]
-            for leaderboard_index in range(0, 5):  # Loop through all 5 slots
-                current_user_id = stats_out["leaderboard"][leaderboard_index][0]
-                current_user_amount = stats_out["leaderboard"][leaderboard_index][1]
-
-                if current_user_id == message.author.id:  # User is on leaderboard
-                    new_leaderboard.pop(leaderboard_index)  # Remove old entry
-                    new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add entry
-                    new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
-
-                    await self.db.stats.update_one(
-                        {},
-                        {"$set": {"leaderboard": new_leaderboard}}
-                    )
-                    break
-                else:  # Not on leaderboard
-                    if current_user_amount >= member_out["server_resonance_count"]:  # Not bigger
-                        pass
-                    elif current_user_amount < member_out["server_resonance_count"]:  # Is bigger
-                        if current_user_id == 0:  # Leaderboard slot not filled
-                            new_leaderboard.pop(leaderboard_index)  # Remove old entry
-                            new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
-                            new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
-                        else:  # Leaderboard is filled
-                            new_leaderboard.pop(leaderboard_index)  # Remove old entry
-                            new_leaderboard.append([message.author.id, member_out["server_resonance_count"] + 1])  # Add new entry
-                            new_leaderboard.sort(key=lambda x: x[1], reverse=True)  # Re-sort list
-
-                        await self.db.stats.update_one(
-                            {},
-                            {"$set": {"leaderboard": new_leaderboard}}
-                        )
-                        break
-
         if "electronic gem" in message.content.lower():
             self.logger.info(f"Reacted 'egem' to message: {message.jump_url}")
-            await message.add_reaction("<:egemDEV:1062784474351403068>")  # TODO: SWITCH EMOJI ID ELECTRONIC GEMS
+            await message.add_reaction("<:egemDEV:1062784474351403068>")  # TODO: REPLACE LIVE EMOJI
             # <:egem:852516812423430144> Actual emoji_ID when integrated
             # <:egemDEV:1062784474351403068> TEST Emoji
 

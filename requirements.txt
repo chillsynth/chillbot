@@ -2,5 +2,8 @@ aiohttp>=3.8.4
 python-dotenv>=1.0.0
 discord.py>=2.3.0
 motor>=3.2.0
-requests==2.31.0
+requests>=2.31.0
 pymongo>=4.2.0
+tzlocal>=5.0.1
+pytz>=2023.2
+lavalink>=4.0.6
