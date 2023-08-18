@@ -7,7 +7,8 @@ jobs:
   Deploy-To-GCP:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Setup SSH
+        run: |
           echo "${{ secrets.GCP_PRIVATE_KEY }}" > ~/.ssh/key.pem
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H ${{ vars.GCP_EXTERNAL_IP }} >> ~/.ssh/known_hosts
