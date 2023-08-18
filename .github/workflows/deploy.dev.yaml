@@ -2,7 +2,7 @@ name: deploy develop branch to dev
 on:
   push:
     branches:
-      - main
+      - develop
 jobs:
   Deploy-To-GCP:
     runs-on: ubuntu-latest
