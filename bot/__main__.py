@@ -14,7 +14,7 @@ class ChillBot(commands.Bot):
             *args,
             initial_extensions: List[str],
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = os.getenv("DEBUG_GUILD_ID"),
+            testing_guild_id: Optional[int] = os.getenv("DEV_GUILD_ID"),
             **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -45,7 +45,7 @@ async def main():
     logger.setLevel(logging.INFO)
 
     handler = logging.handlers.RotatingFileHandler(
-        filename='discord.log',
+        filename='logs/discord.log',
         encoding='utf-8',
         maxBytes=32 * 1024 * 1024,  # 32 MiB
         backupCount=5,  # Rotate through 5 files
@@ -67,7 +67,7 @@ async def main():
                                                       name="ChillSynth FM",
                                                       url="https://nightride.fm/eq?station=chillsynth"),
                             status=discord.Status.online) as bot:
-            await bot.start(os.getenv('TOKEN'))
+            await bot.start(os.getenv('DEV_TOKEN'))
 
 
 # For most use cases, after defining what needs to run, we can just tell asyncio to run it:

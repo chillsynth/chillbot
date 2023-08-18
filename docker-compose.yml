@@ -4,3 +4,5 @@ services:
   chillbot:
     build: ./
     env_file: .env
+    volumes:
+      - ./logs:/chillbot/logs

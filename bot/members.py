@@ -53,7 +53,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
         channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        mod_role = interaction.guild.get_role(int(os.getenv('MOD_ROLE_ID')))
+        mod_role = interaction.guild.get_role(int(os.getenv('DEV_MOD_ROLE_ID')))
         await channel.send(f"{mod_role.mention}")
         await channel.send(embed=embed)
 

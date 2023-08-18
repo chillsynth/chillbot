@@ -19,7 +19,7 @@ class Greetings(commands.Cog):
         print(self.vars_loaded)
         if not self.vars_loaded:
             try:
-                self.online_role = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))
+                self.online_role = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))
                 print(self.get_roles_channel)
                 print(self.feedback_channel)
                 print(f"`Greetings` variables loaded")
@@ -39,14 +39,14 @@ class Greetings(commands.Cog):
             if before.pending is True and after.pending is False:
                 if self.online_role not in before.roles:  # Once onboarded and verified
                     await sleep(0.2)
-                    test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))  # YAY! guild object :catJAM:
+                    test_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # YAY! guild object :catJAM:
                     lounge_channel = discord.utils.get(test_guild.channels, name="chill-lounge")
 
                     await after.add_roles(discord.utils.get(test_guild.roles, name="Online"))  # Add "Online" role
 
                     welcome_embed = discord.Embed(
-                        description=f"Head over to <#{os.getenv('GET_ROLES_ID')}> to grab your roles."
-                                    f"\nAnd as always, **`GIVE`** <#{os.getenv('FEEDBACK_ID')}> "
+                        description=f"Head over to <#{os.getenv('DEV_GET_ROLES_ID')}> to grab your roles."
+                                    f"\nAnd as always, **`GIVE`** <#{os.getenv('DEV_FEEDBACK_ID')}> "
                                     f"before you **`ASK`** for it!",
                         colour=13281772
                     )

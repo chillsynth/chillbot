@@ -9,7 +9,7 @@ class Fun(commands.Cog):
     async def on_message(self, message):
         if "resonance" in message.content.lower():
             print("\nReacted resonance")
-            await message.add_reaction("<:resonance:699652237135183982>")
+            await message.add_reaction("<:resonanceDEV:1020142646787837992>")  # TODO: REPLACE LIVE ENV
             # <:resonance:699652237135183982> Actual emoji_ID when integrated
             # <:resonanceDEV:1020142646787837992> TEST Emoji
 

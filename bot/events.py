@@ -37,7 +37,7 @@ class Events(commands.Cog):
     async def event(self, interaction: discord.Interaction,
                     event_type: discord.app_commands.Choice[int],
                     enable: bool):
-        test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))  # YAY! guild object :catJAM:
+        test_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # YAY! guild object :catJAM:
         event_stage = discord.utils.get(test_guild.channels, name="Event Stage")
         event_stream = discord.utils.get(test_guild.channels, name="Event Stream")
         event_chat = discord.utils.get(test_guild.channels, name="event-chat")
@@ -66,7 +66,7 @@ class Events(commands.Cog):
     @app_commands.command(name="emove", description="Moves all members to #Hangout Room VC")
     @app_commands.checks.has_role("Event Host")
     async def eventmove(self, interaction: discord.Interaction):
-        test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))  # YAY! guild object :catJAM:
+        test_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # YAY! guild object :catJAM:
         vc_channel = discord.utils.get(test_guild.channels, name="Hangout Room")
         event_stage = discord.utils.get(test_guild.channels, name="Event Stage")
         event_stream = discord.utils.get(test_guild.channels, name="Event Stream")
@@ -80,7 +80,7 @@ class Events(commands.Cog):
     @app_commands.command(name="esize", description="Counts all members in the event")
     @app_commands.checks.has_role("Event Host")
     async def eventsize(self, interaction: discord.Interaction):
-        test_guild = self.bot.get_guild(int(os.getenv("DEBUG_GUILD_ID")))  # YAY! guild object :catJAM:
+        test_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # YAY! guild object :catJAM:
         event_stream = discord.utils.get(test_guild.channels, name="Event Stream")
         # event_stage = discord.utils.get(test_guild.channels, name=" Event Stage")
         await interaction.response.send_message(f"There are {str(len(event_stream.members))} "
