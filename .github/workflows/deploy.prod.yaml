@@ -6,11 +6,18 @@ on:
 jobs:
   Deploy-To-GCP:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Setup SSH
-        run: |
-          echo "${{ secrets.GCP_PRIVATE_KEY }}" > ~/.ssh/key.pem
-          chmod 600 ~/.ssh/key.pem
-          ssh-keyscan -H ${{ vars.GCP_EXTERNAL_IP }} >> ~/.ssh/known_hosts
-          ssh -o StrictHostKeyChecking=no ${{ vars.GCP_USERNAME }}@${{ vars.GCP_EXTERNAL_IP }}
-          ssh -i ~/.ssh/key.pem ${{ vars.GCP_USERNAME }}@${{ vars.GCP_EXTERNAL_IP }} "cd chillbot; git pull; echo "${{ secrets.PROD_ENV }}" > .env; "docker compose up --build -d"
+    - name: Connect to remote and deploy
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ vars.GCP_EXTERNAL_IP }}
+        username: ${{ vars.GCP_USERNAME }}
+        key: ${{ secrets.GCP_PRIVATE_KEY }}
+        port: 22
+        command_timeout: 30m
+        script: | 
+          cd chillbot
+          git pull
+          echo "${{ secrets.PROD_ENV }}" > .env
+          docker compose up --build -d
