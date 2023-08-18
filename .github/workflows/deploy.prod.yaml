@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo ${{ secrets.GCP_PRIVATE_KEY }} > ~/.ssh/key.pem
+          echo "${{ secrets.GCP_PRIVATE_KEY }}" > ~/.ssh/key.pem
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H ${{ vars.GCP_EXTERNAL_IP }} >> ~/.ssh/known_hosts
           ssh -o StrictHostKeyChecking=no ${{ vars.GCP_USERNAME }}@${{ vars.GCP_EXTERNAL_IP }}
