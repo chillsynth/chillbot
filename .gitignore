@@ -1,6 +1,6 @@
 *.env
 /venv/
-/lib/token.0
 .idea/
-/bot/discord.log
 *.pyc
+/.directory
+/logs/discord.log
