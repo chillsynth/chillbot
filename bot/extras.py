@@ -15,7 +15,7 @@ class Extras(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -117,7 +117,7 @@ class Extras(commands.Cog):
 
                 # Send new upload embed to #youtube-feed
                 self.logger.debug(f"New upload for [{upload_channel}] has been found! Posting to #youtube-feed.")
-                youtube_webhook = discord.SyncWebhook.from_url(os.getenv("DEV!_YOUTUBE_URL"))  # TODO: REPLACE LIVE ENV
+                youtube_webhook = discord.SyncWebhook.from_url(os.getenv("DEV_YOUTUBE_URL"))  # TODO: REPLACE LIVE ENV
                 youtube_webhook.send(f"{upload_title}: https://youtube.com/watch?v={url_id}")
 
             channel_counter += 1
@@ -133,8 +133,8 @@ class Extras(commands.Cog):
         async for result in self.db.stats.find():
             stats_out = result
 
-        the_guild: discord.Guild = await self.bot.fetch_guild(int(os.getenv("DEV!_GUILD_ID")))
-        resonance_channel = await the_guild.fetch_channel(int(os.getenv("DEV!_RESONANCE_ID")))  # TODO: REPLACE LIVE ENV
+        the_guild: discord.Guild = await self.bot.fetch_guild(int(os.getenv("DEV_GUILD_ID")))
+        resonance_channel = await the_guild.fetch_channel(int(os.getenv("DEV_RESONANCE_ID")))  # TODO: REPLACE LIVE ENV
 
         await resonance_channel.edit(name=f"Resonances: {stats_out['global_resonance_count']}")  # +1 ????
 

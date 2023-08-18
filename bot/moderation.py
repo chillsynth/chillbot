@@ -104,7 +104,7 @@ class Moderation(commands.Cog):
                 self.logger.info(f"Moderation.cog: {message.author.display_name}[{message.author.id}] found the secret")
                 sys.stdout.write(f"DM received from {message.author.display_name}[{message.author.id}]")
 
-    @app_commands.checks.has_role(int(os.getenv('DEV!_MOD_ROLE_ID')))  # Change to LIVE
+    @app_commands.checks.has_role(int(os.getenv('DEV_MOD_ROLE_ID')))  # Change to LIVE
     @app_commands.command(name="username", description="Change the server username of a member")
     async def username_change(self, interaction: discord.Interaction, member: discord.Member, new_username: str):
         await member.edit(nick=new_username)

@@ -1,7 +1,8 @@
-FROM python:3.11.1-slim
+FROM python:alpine
+
 WORKDIR /chillbot
-COPY /bot/ /chillbot/
-COPY requirements.txt requirements.txt
+COPY ./ /chillbot/
+
 RUN pip install -r requirements.txt
 
-CMD ["python3", "__main__.py"]
+CMD ["python", "-u", "bot"]

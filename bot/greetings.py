@@ -24,7 +24,7 @@ class Greetings(commands.Cog):
                 self.logger.info(f"Greetings.cog: GETTING VARS READY...")
 
                 # Get the online for lookup later
-                self.current_guild = self.bot.get_guild(int(os.getenv("DEV!_GUILD_ID")))  # TODO: REPLACE LIVE ENV
+                self.current_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # TODO: REPLACE LIVE ENV
                 self.online_role = discord.utils.get(self.current_guild.roles, name="Online")
 
                 self.vars_loaded = True
@@ -50,8 +50,8 @@ class Greetings(commands.Cog):
                     await after.add_roles(discord.utils.get(self.current_guild.roles, name="Online"))
 
                     welcome_embed = discord.Embed(
-                        description=f"Head over to <#{os.getenv('DEV!_GET_ROLES_ID')}> to grab your roles."
-                                    f"\nAnd remember to **`GIVE`** <#{os.getenv('DEV!_FEEDBACK_ID')}> "
+                        description=f"Head over to <#{os.getenv('DEV_GET_ROLES_ID')}> to grab your roles."
+                                    f"\nAnd remember to **`GIVE`** <#{os.getenv('DEV_FEEDBACK_ID')}> "
                                     f"before you **`ASK`** for it!",
                         colour=13281772
                     )  # TODO: REPLACE LIVE ENV

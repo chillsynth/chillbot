@@ -1,6 +1,8 @@
+version: '3'
+
 services:
   chillbot:
-    build: .
-    image: chillbot-alpine
+    build: ./
     env_file: .env
-    command: python .
+    volumes:
+      - ./logs:/chillbot/logs

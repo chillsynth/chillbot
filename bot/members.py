@@ -14,7 +14,7 @@ class Members(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -239,7 +239,7 @@ class Members(commands.Cog):
 class Socials(discord.ui.Modal, title='Social URL Management'):
     def __init__(self, interaction: discord.Interaction):
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # REPLACE LIVE ENV
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))  # REPLACE LIVE ENV
         self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
@@ -344,7 +344,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
         channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
-        await channel.send(f"### {interaction.guild.get_role(int(os.getenv('DEV!_MOD_ROLE_ID'))).mention}"
+        await channel.send(f"### {interaction.guild.get_role(int(os.getenv('DEV_MOD_ROLE_ID'))).mention}"
                            f"\n# <:Discord_System_MessageInteractio:1140060017853210696>  **NEW REPORT**")  # TODO: REPLACE LIVE ENV
         await channel.send(embed=embed)
 

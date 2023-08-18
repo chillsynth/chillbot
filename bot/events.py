@@ -20,7 +20,7 @@ class FeedbackQueueView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # TODO: REPLACE LIVE ENV
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))  # TODO: REPLACE LIVE ENV
         self.db = self.client["_events"]
 
         self.logger = logging.getLogger('discord')
@@ -295,7 +295,7 @@ class SubmitView(discord.ui.View):
         super().__init__(timeout=None)
 
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))  # TODO: REPLACE LIVE ENV
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))  # TODO: REPLACE LIVE ENV
         self.db = self.client["_events"]
 
     @discord.ui.button(label="Create Submission",
@@ -309,7 +309,7 @@ class SubmitView(discord.ui.View):
                                                              type=discord.ChannelType.private_thread)
 
         thread_msg = await new_thread.send(
-            f"||<@{interaction.user.id}><@&{os.getenv('DEV!_EVENT_ROLE_ID')}>||\n"
+            f"||<@{interaction.user.id}><@&{os.getenv('DEV_EVENT_ROLE_ID')}>||\n"
             f"### IMPORTANT : Private SoundCloud links must have **`s-`** in the URL like this:\n"
             f"> **soundcloud.com/hurleybirdjr/example-track/`s-`1nqsSuAAk79**\n## ~\n"
             f"## Please upload your `.mp3` / `.wav` / `.flac` file below\n### OR\n"
@@ -368,7 +368,7 @@ class Events(commands.Cog):
         self.bot = bot
 
         # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
         self.db = self.client["_events"]
 
     async def cog_load(self):
@@ -487,9 +487,9 @@ class Events(commands.Cog):
     async def event(self, interaction: discord.Interaction,
                     event_type: discord.app_commands.Choice[int],
                     enable: bool):
-        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
-        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
-        self.event_chat = self.bot.get_channel(int(os.getenv("DEV!_EVENT_CHAT_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV_EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV_EVENT_STREAM_ID")))
+        self.event_chat = self.bot.get_channel(int(os.getenv("DEV_EVENT_CHAT_ID")))
 
         self.online_role = discord.utils.get(interaction.guild.roles, name="Online")
         # Set permissions
@@ -519,9 +519,9 @@ class Events(commands.Cog):
     @app_commands.command(name="emove", description="Moves all members to #Hangout Room VC")
     @app_commands.checks.has_role("Event Host")
     async def eventmove(self, interaction: discord.Interaction):
-        self.vc_channel = self.bot.get_channel(int(os.getenv("DEV!_PUBLIC_VC_ID")))
-        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
-        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
+        self.vc_channel = self.bot.get_channel(int(os.getenv("DEV_PUBLIC_VC_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV_EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV_EVENT_STREAM_ID")))
         for member in self.event_stream.members:  # Move all #Event Stream to #Hangout Room
             await member.move_to(self.vc_channel)
         for member in self.event_stage.members:  # Move all #Event Stage to #Hangout Room
@@ -532,8 +532,8 @@ class Events(commands.Cog):
     @app_commands.command(name="esize", description="Counts all members in the event")
     @app_commands.checks.has_role("Event Host")
     async def eventsize(self, interaction: discord.Interaction):
-        self.event_stream = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STREAM_ID")))
-        self.event_stage = self.bot.get_channel(int(os.getenv("DEV!_EVENT_STAGE_ID")))
+        self.event_stream = self.bot.get_channel(int(os.getenv("DEV_EVENT_STREAM_ID")))
+        self.event_stage = self.bot.get_channel(int(os.getenv("DEV_EVENT_STAGE_ID")))
         await interaction.response.send_message(f"There are {str(len(self.event_stream.members))} "
                                                 f"people in the stream!")
 

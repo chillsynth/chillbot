@@ -20,7 +20,7 @@ class ChillBot(commands.Bot):
             *args,
             initial_extensions: List[str],
             web_client: ClientSession,
-            testing_guild_id: Optional[int] = os.getenv("DEV!_GUILD_ID"),
+            testing_guild_id: Optional[int] = os.getenv("DEV_GUILD_ID"),
             **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -60,7 +60,7 @@ async def main():
     logger.addHandler(handler)
 
     # DB Setup
-    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV!_MONGO_URI"))
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
     db = client.test
 
     # Send a ping to confirm a successful connection
@@ -84,7 +84,7 @@ async def main():
                                                       name="ChillSynth FM",
                                                       url="https://nightride.fm/eq?station=chillsynth"),
                             status=discord.Status.online) as bot:
-            await bot.start(os.getenv('DEV!_TOKEN'))
+            await bot.start(os.getenv('DEV_TOKEN'))
 
 
 asyncio.run(main())

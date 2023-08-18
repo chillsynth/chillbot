@@ -1,7 +1,6 @@
 *.env
 /venv/
 .idea/
-/bot/discord.log
 /workflow
 /.directory
-/lavalink/Lavalink.jar
+/logs/discord.log
