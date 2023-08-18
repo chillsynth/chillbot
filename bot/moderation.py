@@ -60,10 +60,8 @@ class Moderation(commands.Cog):
             message_is_valid = True
             awa_datetime = (datetime.now(pytz.timezone(get_localzone().key)) - timedelta(weeks=1))
 
-            # Check message isn't a track
-            if last_message.created_at > awa_datetime:  # Last message is newer than 1 week - ALL GOOD
-                print("Message is new enough, carry on")
-            elif last_message.created_at <= awa_datetime:  # Last message is older than 1 week - PERFORM CHECKS
+            if not last_message:  # Last message not found - Limit too small / No message sent yet - Likely out of date
+                self.logger.info(f"Moderation.cog: No previous message found for {message.author.display_name}")
                 print("Message is too old")
                 if message.attachments:  # Check if current message contains track link
                     print("New message contains attachments")
@@ -73,7 +71,20 @@ class Moderation(commands.Cog):
                     print("Message contains http link")
                     message_is_valid = False
             else:
-                print("Logic broke lol")
+                # Check message isn't a track
+                if last_message.created_at > awa_datetime:  # Last message is newer than 1 week - ALL GOOD
+                    print("Message is new enough, carry on")
+                elif last_message.created_at <= awa_datetime:  # Last message is older than 1 week - PERFORM CHECKS
+                    print("Message is too old")
+                    if message.attachments:  # Check if current message contains track link
+                        print("New message contains attachments")
+                        message_is_valid = False
+                    if not message.content.find("http"):  # Check if current message contains track URL
+                        print(message.content.find("http"))
+                        print("Message contains http link")
+                        message_is_valid = False
+                else:
+                    print("Logic broke lol")
 
             if not message_is_valid:
                 print(message.content)
@@ -89,11 +100,8 @@ class Moderation(commands.Cog):
                     f"<:Discord_Timeout:1140060025876922482> This message will expire <t:{current_unix}:R>"
                 )
                 await message.channel.send(content=f"<@{message.author.id}>", embed=embed, delete_after=30.0)
-            else:
-                print("All checks passed, good to go :)")
-
-            if not last_message:  # Last message not found - Limit too small / No message sent yet - Likely out of date
-                print("No last message found.")
+            else:  # Nothing to do, message is all good
+                self.logger.debug(f"Moderation.cog: All checks for #feedback have passed, good to go")
 
         elif not message.guild:  # Message is in DMs
             if "!secret" in message.content.lower():

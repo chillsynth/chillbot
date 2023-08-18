@@ -390,7 +390,7 @@ class Events(commands.Cog):
 
     # FEEDBACK QUEUE COMMAND
     @app_commands.command(name="feedback_queue", description="Shows the current Feedback Queue™")
-    @app_commands.checks.has_role("Event Host")
+    # TODO: UNCOMMENT THIS ON LIVE @app_commands.checks.has_role("Event Host")
     async def display_feedback_queue(self, interaction: discord.Interaction):
         await interaction.response.send_message("Generating the Feedback Queue™ now...", ephemeral=True)
         response_msg: discord.Message = await interaction.channel.send("<a:Combined_Load:1131251697734389910>")
@@ -412,29 +412,30 @@ class Events(commands.Cog):
 
     # PLAY TRACKS FROM FEEDBACK QUEUE TODO: FINISH THIS
     @app_commands.command(name="track", description="Play a track in the Feedback Queue™")
-    @app_commands.checks.has_role("Event Host")
+    # TODO: UNCOMMENT ME!!!! @app_commands.checks.has_role("Event Host")
     async def feedback_queue_player(self, interaction: discord.Interaction,
-                                    q_user: discord.Member):
-        # Save track URL and update status
-        key = {"track_user_ID": q_user.id}
-        next_track_url = ""
-        fbq_result = None
-        async for result in self.db.feedback_queue.find(key):
-            next_track_url: str = result["track_URL"]
-            fbq_result = result
+                                    q_pos: int):
+        q_pos -= 1  # Remove 1 for list reasons
+        current_q = self.db.feedback_queue.find().sort("time_added", -1)
+        queue_list = await current_q.to_list(length=None)
+        for i in range(0, len(queue_list)):
+            self.logger.info(f"Events.cog: {queue_list[i]['track_user']} {queue_list[i]['track_URL']}")
 
-        update_feedback_submission = {
+        q_user: discord.User = self.bot.get_user(int(queue_list[q_pos]["track_user_ID"]))
+        q_next_url: str = queue_list[q_pos]["track_URL"]
+
+        update_q_state = {
             "$set": {
                 "track_done": True  # CHANGED THIS BTW
             }
         }
 
-        db_filter = {"track_user_ID": q_user.id}  # Filter by user ID
-        await self.db.feedback_queue.update_one(db_filter, update_feedback_submission, upsert=False)
+        update_q_filter = {"track_thread_ID": queue_list[q_pos]["track_thread_ID"]}  # Filter by thread ID
+        await self.db.feedback_queue.update_one(update_q_filter, update_q_state, upsert=False)
 
         await FeedbackQueueView().sort_feedback_queue(interaction, True)  # Update new Feedback Queue state
 
-        # Search and delete DB record
+        # Search for user's social links
         key = {"discord_user_ID": q_user.id}
         next_soundcloud: str = ""
         next_bandcamp: str = ""
@@ -442,15 +443,9 @@ class Events(commands.Cog):
             next_soundcloud = result["soundcloud_URL"]
             next_bandcamp = result["bandcamp_URL"]
 
-        # Search and delete DB record
-        key = {"track_user_ID": q_user.id}
-        next_track_url = ""
-        async for result in self.db.feedback_queue.find(key):
-            next_track_url: str = result["track_URL"]
-
         # Send play message for bot
-        if next_track_url != "":  # URL is available to play - Update queue
-            await interaction.response.send_message(f";play {next_track_url}", delete_after=1)
+        if q_next_url != "":  # URL is available to play - Update queue
+            await interaction.response.send_message(f";play {q_next_url}", delete_after=1)
             if next_soundcloud == "" and next_bandcamp == "":
                 await interaction.channel.send(f"No social links found for {q_user.display_name} :(\n\n"
                                                f"<@>You can setup your SoundCloud _and/or_ Bandcamp links using:\n"
@@ -463,15 +458,15 @@ class Events(commands.Cog):
             self.logger.warning(f"Events.cog: No URL found for {q_user.display_name}'s submission in DB")
 
         # TODO:
-        #   Get chosen position and toggle as complete
+        #   Get chosen position and toggle as complete ¬/
         #   Play the track ¬/
-        #   Update the existing queue
+        #   Update the existing queue ¬/
 
-        # TODO: Position editing in case of manual change needed
+        # TODO: Position editing in case of manual change needed - eg un-"done" a track
 
     # EVENT HOST ONLY
     @app_commands.command(name="submit_system", description="Send the message with the button for submitting threads.")
-    @app_commands.checks.has_role("Event Host")
+    # TODO: UNCOMMENT THIS ON LIVE @app_commands.checks.has_role("Event Host")
     async def submission_button_ting(self, interaction: discord.Interaction):
         await interaction.response.send_message(view=SubmitView())
         # TODO: ADD A Close submissions command and confirm queue

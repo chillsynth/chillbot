@@ -12,8 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# TODO: Nick suggested PROD AND DEV ENV variable toggle or something
-
 class ChillBot(commands.Bot):
     def __init__(
             self,
@@ -30,6 +28,8 @@ class ChillBot(commands.Bot):
 
     async def on_ready(self):
         print(f"<{self.user.name} [{self.user.id}] is ready and online!>")
+        logger = logging.getLogger('discord')
+        logger.info(f"<{self.user.name} [{self.user.id}] is ready and online!>")
 
     async def setup_hook(self) -> None:
         for extension in self.initial_extensions:
@@ -59,6 +59,8 @@ async def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    async def return_logger():
+        return logger
     # DB Setup
     client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
     db = client.test
@@ -66,15 +68,14 @@ async def main():
     # Send a ping to confirm a successful connection
     try:
         client.admin.command('ping')
-        print("Connected to MongoDB!")
+        logger.info(f"Connected to MongoDB!")
         # Show connection to DB
-        print(db)
-        logger.info(db)
+        logger.debug(db)
     except Exception as e:
         logger.error(e)
 
     async with ClientSession() as our_client:
-        print(f"<Starting>")
+        logger.info(f"<Starting>")  # Startup has begun
         extensions = ["members", "extras", "greetings", "events", "moderation", "admin"]  # "art" v4?
         async with ChillBot(commands.when_mentioned,
                             web_client=our_client,

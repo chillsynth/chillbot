@@ -42,3 +42,30 @@ _server.members:
 	soundcloud_URL: str["https://soundcloud.com/hurleybirdjr"]
 	bandcamp_URL: str["https://hurleybirdjr.bandcamp.com"]
 }
+
+_server.stats:
+{
+	global_resonance_count: int,
+	leaderboard: [
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		]
+	]
+}

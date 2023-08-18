@@ -3,6 +3,7 @@ version: '3'
 services:
   chillbot:
     build: ./
-    env_file: .env
+    env_file: dev.env
     volumes:
       - ./logs:/chillbot/logs
+    # command: echo $TZ > /etc/timezone

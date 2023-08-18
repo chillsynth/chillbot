@@ -55,7 +55,7 @@ class Admin(commands.Cog):
                         },
                         "past_nicknames": {
                             "nickname": ["", "", "", "", ""],
-                            "nick_name_changed": ["", "", "", "", ""]
+                            "nick_date_changed": ["", "", "", "", ""]
                         },
                         "soundcloud_URL": "",
                         "bandcamp_URL": ""

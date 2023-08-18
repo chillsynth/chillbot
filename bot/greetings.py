@@ -14,24 +14,7 @@ class Greetings(commands.Cog):
         self.logger = logging.getLogger('discord')
         self.logger.setLevel(logging.INFO)
 
-        self.vars_loaded = False
-        self.get_vars()
         self.bot = bot
-
-    def get_vars(self):
-        if not self.vars_loaded:
-            try:
-                self.logger.info(f"Greetings.cog: GETTING VARS READY...")
-
-                # Get the online for lookup later
-                self.current_guild = self.bot.get_guild(int(os.getenv("DEV_GUILD_ID")))  # TODO: REPLACE LIVE ENV
-                self.online_role = discord.utils.get(self.current_guild.roles, name="Online")
-
-                self.vars_loaded = True
-                pass
-            except AttributeError:
-                self.logger.error(f"Greetings.cog: Attribute Error in loading of variables!")
-                return None
 
     async def cog_load(self):
         self.logger.info(f"Greetings.cog: LOADED!")
@@ -44,17 +27,21 @@ class Greetings(commands.Cog):
                 if self.online_role not in before.roles:  # Once onboarded and verified
                     await sleep(0.2)
 
-                    lounge_channel = discord.utils.get(self.current_guild.channels, name="chill-lounge")
+                    the_guild: discord.Guild = await self.bot.fetch_guild(int(os.getenv("DEV_GUILD_ID")))
+                    lounge_channel: discord.TextChannel = await the_guild.fetch_channel(
+                        int(os.getenv("DEV_LOUNGE_ID")))
 
                     # Add "Online" role
-                    await after.add_roles(discord.utils.get(self.current_guild.roles, name="Online"))
+                    await after.add_roles(the_guild.get_role(int(os.getenv("DEV_ONLINE_ROLE_ID"))))
 
                     welcome_embed = discord.Embed(
-                        description=f"Head over to <#{os.getenv('DEV_GET_ROLES_ID')}> to grab your roles."
-                                    f"\nAnd remember to **`GIVE`** <#{os.getenv('DEV_FEEDBACK_ID')}> "
-                                    f"before you **`ASK`** for it!",
+                        description=f"### <:Discord_Invite:1140057489941995650>"
+                                    f"   Head over to <#{os.getenv('DEV_GET_ROLES_ID')}> to grab your roles"
+                                    f"\n### <:Discord_Message_SpeakTTS:1140059207106826271>"
+                                    f"   And remember to **`GIVE`** <#{os.getenv('DEV_FEEDBACK_ID')}> "
+                                    f"__before__ you **`ASK`** for it!",
                         colour=13281772
-                    )  # TODO: REPLACE LIVE ENV
+                    )
                     welcome_embed.set_footer(text=f"If you have any questions, feel free to @ one of our moderators!")
 
                     await lounge_channel.send(f"**Hello {before.mention} and welcome to ChillSynth!**")

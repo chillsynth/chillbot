@@ -220,42 +220,18 @@ class Members(commands.Cog):
 
     # SOCIALS URL MANAGEMENT
     @app_commands.command(name="socials", description="Edit your music platform social links")
-    async def socials(self, interaction: discord.Interaction):
+    async def socials(self, interaction: discord.Interaction.response):
         """Edit social URLs for feedback stream, etc..."""
-        await interaction.response.send_modal(Socials(interaction))
-
-    @app_commands.command(name="feedback", description="Submit user feedback")
-    async def feedback(self, interaction: discord.Interaction):
-        """Send feedback to the server team"""
-        await interaction.response.send_modal(Feedback())
-
-    @app_commands.command(name="report", description="Submit a report")
-    async def report(self, interaction: discord.Interaction):
-        """Send report to the mod team"""
-        await interaction.response.send_modal(UserReport())
-
-
-# SOCIALS MODAL
-class Socials(discord.ui.Modal, title='Social URL Management'):
-    def __init__(self, interaction: discord.Interaction):
-        # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))  # REPLACE LIVE ENV
-        self.db = self.client["_server"]
-
-        self.logger = logging.getLogger('discord')
-        self.logger.setLevel(logging.INFO)
-
-        super().__init__()
 
         # Search DB record
         key = {"discord_user_ID": interaction.user.id}
         search_result = None
-        for result in self.db.members.find(key):
-            # print(f"Found {result['discord_username']} under: ObjectID:{result['_id']}")  # DEBUG
+        async for result in self.db.members.find(key):
+            self.logger.debug(f"Found {result['discord_username']} under: ObjectID:{result['_id']}")
             search_result = result
 
-        current_soundcloud_url = ""
-        current_bandcamp_url = ""
+        current_soundcloud_url: str = ""
+        current_bandcamp_url: str = ""
 
         try:
             current_soundcloud_url = search_result['soundcloud_url']
@@ -267,6 +243,36 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
         except KeyError:
             self.logger.debug(f"Members.cog: {interaction.user.global_name} has no Bandcamp URL.")
             pass
+
+        mixed_urls: list = [current_soundcloud_url, current_bandcamp_url]
+
+        await interaction.response.send_modal(Socials(interaction, mixed_urls))
+
+    @app_commands.command(name="feedback", description="Submit user feedback")
+    async def feedback(self, interaction: discord.Interaction.response):
+        """Send feedback to the server team"""
+        await interaction.response.send_modal(Feedback())
+
+    @app_commands.command(name="report", description="Submit a report")
+    async def report(self, interaction: discord.Interaction.response):
+        """Send report to the mod team"""
+        await interaction.response.send_modal(UserReport())
+
+
+# SOCIALS MODAL
+class Socials(discord.ui.Modal, title='Social URL Management'):
+    def __init__(self, interaction: discord.Interaction.response, urls: list):
+        # DB Setup
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))  # REPLACE LIVE ENV
+        self.db = self.client["_server"]
+
+        self.logger = logging.getLogger('discord')
+        self.logger.setLevel(logging.INFO)
+
+        super().__init__()
+
+        current_soundcloud_url: str = urls[0]
+        current_bandcamp_url: str = urls[1]
 
         self.soundcloud_user_url = discord.ui.TextInput(
             label="SoundCloud Profile URL",
@@ -291,7 +297,7 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
         self.add_item(self.soundcloud_user_url)
         self.add_item(self.bandcamp_user_url)
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction.response):
         socials_updated_value = {
             "$set": {
                 "soundcloud_url": str(self.soundcloud_user_url),
@@ -304,7 +310,7 @@ class Socials(discord.ui.Modal, title='Social URL Management'):
         self.logger.info(f"Members.cog: {interaction.user.global_name} has updated their Socials()")
         await interaction.response.send_message(f'Changes have been saved, {interaction.user.name}!', ephemeral=True)
 
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+    async def on_error(self, interaction: discord.Interaction.response, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
         self.logger.error(f"Members.cog: Unable to store {interaction.user.global_name}'s Socials() response")
         print(error)
@@ -334,7 +340,7 @@ class UserReport(discord.ui.Modal, title='Report'):
         max_length=2000
     )
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction.response):
         embed = discord.Embed(title=f"Reported Username / ID: {self.reportedUserID}",
                               description=f"**{self.report}**\n",
                               timestamp=datetime.now(),
@@ -343,15 +349,15 @@ class UserReport(discord.ui.Modal, title='Report'):
         embed.set_author(name=f"Submitted by: {interaction.user}", icon_url=user_avatar.url)
         embed.set_thumbnail(url="https://i.imgur.com/giZ2D5T.gif")
 
-        channel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
+        channel: discord.TextChannel = discord.utils.get(interaction.guild.channels, name="moderator-chat")
         await channel.send(f"### {interaction.guild.get_role(int(os.getenv('DEV_MOD_ROLE_ID'))).mention}"
-                           f"\n# <:Discord_System_MessageInteractio:1140060017853210696>  **NEW REPORT**")  # TODO: REPLACE LIVE ENV
+                           f"\n# <:Discord_System_MessageInteractio:1140060017853210696>  **NEW REPORT**")
         await channel.send(embed=embed)
 
         await interaction.response.send_message(f'Thanks for your report, {interaction.user.display_name}!',
                                                 ephemeral=True)
 
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+    async def on_error(self, interaction: discord.Interaction.response, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
 
         logger = logging.getLogger('discord')
@@ -370,7 +376,7 @@ class Feedback(discord.ui.Modal, title='Feedback'):
         max_length=500
     )
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction.response):
         embed = discord.Embed(title=f"User Feedback",
                               description=f"**{self.feedback}**\n\nUser ID:{interaction.user.id}",
                               timestamp=datetime.now(),
@@ -379,12 +385,12 @@ class Feedback(discord.ui.Modal, title='Feedback'):
         embed.set_author(name=interaction.user, icon_url=user_avatar.url)
         embed.set_thumbnail(url=user_avatar.url)
 
-        channel = discord.utils.get(interaction.guild.channels, name="user-feedback")
+        channel: discord.TextChannel = discord.utils.get(interaction.guild.channels, name="user-feedback")
         await channel.send(embed=embed)
 
         await interaction.response.send_message(f'Thanks for your feedback, {interaction.user.name}!', ephemeral=True)
 
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+    async def on_error(self, interaction: discord.Interaction.response, error: Exception) -> None:
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
 
         logger = logging.getLogger('discord')
