@@ -40,7 +40,7 @@ class Extras(commands.Cog):
                                cooldown_time.hour, cooldown_time.minute, cooldown_time.second)
         print(cooldown_time)
         await interaction.response.send_message(
-            f"Cooldown active! Please retry <t:{int(mktime(datetime(*cooldown_time_tuple).timetuple()))}:R>",
+            content=f"Cooldown active! Please retry <t:{int(mktime(datetime(*cooldown_time_tuple).timetuple()))}:R>",
             delete_after=error.retry_after
         )
 
@@ -97,8 +97,15 @@ class Extras(commands.Cog):
                 search_result = result
                 # self.logger.debug(f"Extras.cog: Found {upload_channel} under: ObjectID:{result['_id']}")
 
-            if search_result is None:  # No existing record found - DB or lookup error?
+            if search_result is None:  # No existing record found - DB or lookup error? - Create replacement
                 self.logger.critical(f"[!] Extras.cog: No existing record for [{upload_channel}] found [!]")
+                await self.db.youtube_uploads.insert_one(
+                    {
+                        "youtube_channel_name": str(f"{upload_channel}"),
+                        "upload_title": str(f"{upload_title}"),
+                        "last_updated": float(f"{datetime.now().timestamp()}")
+                    }
+                )
 
             elif search_result["upload_title"] == upload_title:  # Both upload titles match - no change
                 self.logger.debug(f"Current upload for [{upload_channel}] matches existing record - No Change.")
@@ -108,7 +115,7 @@ class Extras(commands.Cog):
                     "$set": {
                         "youtube_channel_name": str(f"{upload_channel}"),
                         "upload_title": str(f"{upload_title}"),
-                        "last_updated": float(f"{datetime.now().timestamp()}"),
+                        "last_updated": float(f"{datetime.now().timestamp()}")
                     }
                 }
 
@@ -139,13 +146,14 @@ class Extras(commands.Cog):
         await resonance_channel.edit(name=f"Resonances: {stats_out['global_resonance_count']}")  # +1 ????
         self.logger.info(f"Extras.cog: Resonance Update complete!")
 
-    # @app_commands.checks.cooldown(1, 120.0, key=None)  # TODO: RE-APPLY THE COOLDOWN!!
+    @app_commands.checks.cooldown(1, 120.0, key=None)
     @app_commands.command(name="leaderboard")
     async def leaderboard(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         # Search DB record
         search_result = None
         async for result in self.db.stats.find({}):
-            # print(f"Found {new.name}#{new.discriminator} under: ObjectID:{result['_id']}")  # DEBUG
+            # print(f"Found {new.global_name} under: ObjectID:{result['_id']}")  # DEBUG
             print(result)
             search_result = result
 
@@ -184,15 +192,13 @@ class Extras(commands.Cog):
         leaderboard_embed.set_image(url="https://cdn.discordapp.com/emojis/699652237135183982.webp")
         leaderboard_embed.set_footer(text="Last Updated")
 
-        await interaction.response.send_message(embed=leaderboard_embed)
+        await interaction.followup.send(embed=leaderboard_embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if "resonance" in message.content.lower():
             self.logger.info(f"Reacted 'resonance' to message: {message.jump_url}")
-            await message.add_reaction("<:resonanceDEV:1020142646787837992>")  # TODO: REPLACE LIVE EMOJI
-            # <:resonance:699652237135183982> Actual emoji_ID when integrated
-            # <:resonanceDEV:1020142646787837992> TEST Emoji
+            await message.add_reaction(os.getenv("DEV_EMOJI_RESONANCE"))
 
             # Retrieve leaderboard DB
             current_stats = None
@@ -222,9 +228,7 @@ class Extras(commands.Cog):
 
         if "electronic gem" in message.content.lower():
             self.logger.info(f"Reacted 'egem' to message: {message.jump_url}")
-            await message.add_reaction("<:egemDEV:1062784474351403068>")  # TODO: REPLACE LIVE EMOJI
-            # <:egem:852516812423430144> Actual emoji_ID when integrated
-            # <:egemDEV:1062784474351403068> TEST Emoji
+            await message.add_reaction(os.getenv("DEV_EMOJI_EGEM"))
 
         if message.stickers:  # Message contains a sticker
             if message.stickers[0].name == "Live Albert Reaction":

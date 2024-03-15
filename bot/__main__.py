@@ -48,6 +48,9 @@ async def main():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
 
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+
     handler = logging.handlers.RotatingFileHandler(
         filename='logs/discord.log',
         encoding='utf-8',
