@@ -1,6 +1,7 @@
-*.env
+*.env*
 /venv/
 .idea/
-*.pyc
+/workflow
 /.directory
-/logs/discord.log
+/logs/
+/bot/logs/

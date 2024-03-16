@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import asyncio
 import os
+import motor.motor_asyncio
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -24,6 +25,8 @@ class ChillBot(commands.Bot):
 
     async def on_ready(self):
         print(f"<{self.user.name} [{self.user.id}] is ready and online!>")
+        logger = logging.getLogger('discord')
+        logger.info(f"<{self.user.name} [{self.user.id}] is ready and online!>")
 
     async def setup_hook(self) -> None:
         for extension in self.initial_extensions:
@@ -31,12 +34,10 @@ class ChillBot(commands.Bot):
 
         if self.testing_guild_id:
             guild = discord.Object(self.testing_guild_id)
-            # We'll copy in the global commands to test with:
+            # Copy global commands
             self.tree.copy_global_to(guild=guild)
-            # followed by syncing to the testing guild.
+            # Sync commands to tree
             await self.tree.sync(guild=guild)
-
-        # This would also be a good place to connect to a database
 
 
 async def main():
@@ -44,21 +45,38 @@ async def main():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
 
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+
     handler = logging.handlers.RotatingFileHandler(
         filename='logs/discord.log',
         encoding='utf-8',
         maxBytes=32 * 1024 * 1024,  # 32 MiB
         backupCount=5,  # Rotate through 5 files
     )
-    dt_fmt = '%Y-%m-%d %H:%M:%S'
+    dt_fmt = '%d-%m-%Y %H:%M:%S'
     formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    async def return_logger():
+        return logger
+    # DB Setup
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
+    db = client.test
+
+    # Send a ping to confirm a successful connection
+    try:
+        client.admin.command('ping')
+        logger.info(f"Connected to MongoDB!")
+        # Show connection to DB
+        logger.debug(db)
+    except Exception as e:
+        logger.error(e)
+
     async with ClientSession() as our_client:
-        # 2. We become responsible for starting the bot.
-        print(f"<Starting>")
-        extensions = ["members", "fun", "greetings", "events", "moderation"]
+        logger.info(f"<Starting>")  # Startup has begun
+        extensions = ["members", "extras", "greetings", "events", "moderation", "admin"]  # "art" v4?
         async with ChillBot(commands.when_mentioned,
                             web_client=our_client,
                             initial_extensions=extensions,
@@ -70,5 +88,4 @@ async def main():
             await bot.start(os.getenv('DEV_TOKEN'))
 
 
-# For most use cases, after defining what needs to run, we can just tell asyncio to run it:
 asyncio.run(main())

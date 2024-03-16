@@ -1,0 +1,72 @@
+_server.members:
+{
+	"discord_username": str["Username"],
+	"discord_user_ID": int[700745497215762452],
+	"discord_creation_date": epoch[0],
+	"server_nickname": str["Nickname :)"],
+	"server_join_date": epoch[0],
+	"server_leave_date": epoch[0],
+	"is_booster": bool[false],
+	"past_usernames": dict{
+		"username": [
+			str["newest name"],
+			str["2nd oldest"],
+			str["3rd oldest"],
+			str["4th oldest"],
+			str["5th oldest"]
+		],
+		"user_date_changed": [
+			epoch[0]
+			epoch[1]
+			epoch[2]
+			epoch[3]
+			epoch[4],
+		]
+	},
+	"past_nicknames": dict{
+		"nickname": [
+			str["New Nickname"],
+			str["2nd Nickname"],
+			str["3rd Nickname"],
+			str["4th Nickname"],
+			str["5th Nickname"]
+		],
+		"nick_date_changed": [
+			epoch[0]
+			epoch[1]
+			epoch[2]
+			epoch[3]
+			epoch[4],
+		]
+	},
+	soundcloud_url: str["https://soundcloud.com/hurleybirdjr"]
+	bandcamp_url: str["https://hurleybirdjr.bandcamp.com"]
+	other_url: str["https://hurleybirdjr.com"]
+}
+
+_server.stats:
+{
+	global_resonance_count: int,
+	leaderboard: [
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		],
+		[
+			int[700745497215762452],
+			int,
+		]
+	]
+}
