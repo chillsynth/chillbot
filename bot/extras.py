@@ -44,12 +44,8 @@ class Extras(commands.Cog):
             delete_after=error.retry_after
         )
 
-    # YOUTUBE SCANNER
-    # MANUAL @app_commands.command(name="scan", description="Scan the YouTube channels and output details to console.")
-    @tasks.loop(minutes=10)
-    async def youtube_scan(self):  # , interaction: discord.Interaction): - USE FOR MANUAL
-        # await interaction.response.defer(thinking=True) - USE FOR MANUAL
-
+    @tasks.loop(minutes=15)
+    async def youtube_scan(self):
         channels = {
             "channel_URLs": [
                 "https://www.youtube.com/@ElectronicGems",
@@ -130,8 +126,13 @@ class Extras(commands.Cog):
             channel_counter += 1
 
         self.logger.info(f"Extras.cog: YouTube Scan complete!")
-        # self.logger.info(f"Extras.cog: /scan by {interaction.user.id} complete!") - USE FOR MANUAL
-        # await interaction.edit_original_response(content="Done!") - USE FOR MANUAL
+
+    @app_commands.command(name="scan", description="Scan the YouTube channels and output details to console.")
+    async def manual_youtube_scan(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
+        await self.youtube_scan()
+        self.logger.info(f"Extras.cog: /scan by {interaction.user.id} complete!")
+        await interaction.edit_original_response(content="Done!")
 
     @tasks.loop(minutes=15)  # RATE LIMIT IS 10 minutes ish
     async def resonance_update(self):
