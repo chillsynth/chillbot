@@ -7,7 +7,8 @@ from discord.ext import commands, tasks
 from discord import app_commands  # - USE FOR MANUAL
 from datetime import datetime, timedelta
 from time import mktime
-import requests
+import feedparser
+import pytz
 
 
 class Extras(commands.Cog):
@@ -44,96 +45,48 @@ class Extras(commands.Cog):
             delete_after=error.retry_after
         )
 
-    # YOUTUBE SCANNER
-    # MANUAL @app_commands.command(name="scan", description="Scan the YouTube channels and output details to console.")
     @tasks.loop(minutes=10)
-    async def youtube_scan(self):  # , interaction: discord.Interaction): - USE FOR MANUAL
-        # await interaction.response.defer(thinking=True) - USE FOR MANUAL
+    async def youtube_scan(self):
+        channels = [
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCPzWlhG7QM56Y8MYB3qMVnQ",  # ELECTRONIC GEMS
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCjPLBJtP7zq16YVcT3_gmkg",  # POLYCHORA
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCzIGoCCmSvgJgaxFFOOBJdQ",  # Definition of Chill.
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCwoTj-pZgZZ8DInOXSSLMmA",  # Odysseus
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew",  # DFTI
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCmJHkrvlDlFws5Rw1AYUWMQ"   # Hurleybird
+        ]
 
-        channels = {
-            "channel_URLs": [
-                "https://www.youtube.com/@ElectronicGems",
-                "https://www.youtube.com/@Polychora",
-                "https://www.youtube.com/@DefinitionofChill",
-                "https://www.youtube.com/@OdysseusOfficial",
-                "https://www.youtube.com/@disconnectedfromtheinterwe9157"
-            ],
-            "channel_names": [
-                "Electronic Gems",
-                "Polychora",
-                "Definition of Chill.",
-                "Odysseus",
-                "disconnected from the interweb"
-            ]
-        }
+        for channel_url in channels:
+            rss_data = feedparser.parse(channel_url)
+            upload_channel = rss_data.feed.title
+            upload_title = rss_data.entries[0].title
+            upload_url = rss_data.entries[0].link
+            upload_time = rss_data.entries[0].published
 
-        cookies_dict = {"SOCS": "CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg"}  # Cookie for "accepting" cookie wall
+            upload_time = datetime.fromisoformat(upload_time)
+            now_time = datetime.utcnow().replace(tzinfo=pytz.utc).replace(microsecond=0)
+            time_diff: timedelta = now_time - upload_time
+            self.logger.info(f"Time diff: {time_diff}")
 
-        channel_counter = 0
-        for current_channel in channels["channel_URLs"]:
-            html = requests.get(current_channel + "/videos", cookies=cookies_dict)
-            html_result = html.content.decode("utf-8")
+            if time_diff.days == 0:
+                if time_diff.seconds >= 600:  # 600 = 10 minutes per scan - OLD UPLOAD
+                    self.logger.debug(f"{upload_channel}: No new posts.")
+                elif time_diff.seconds < 600:  # NEW UPLOAD - YIPPEE!  --  Send new upload embed to #youtube-feed
+                    self.logger.debug(f"New upload for [{upload_channel}] has been found! Posting to #youtube-feed.")
 
-            s_idx = html_result.find("accessibilityData") + 29  # Remove prefix
-            e_idx = html_result.find("descriptionSnippet") - 6  # Remove suffix
+                    youtube_webhook = discord.SyncWebhook.from_url(os.getenv("DEV_YOUTUBE_URL"))
+                    youtube_webhook.send(f"{upload_title}: {upload_url}")
 
-            url_s_idx = html_result.find("videoRenderer") + 27  # Remove prefix
-            url_e_idx = url_s_idx + 11  # Extract only the videoID
-            url_id = html_result[url_s_idx:url_e_idx]
+        self.logger.debug(f"Extras.cog: YouTube Scan complete!")
 
-            full_upload_data = html_result[s_idx:e_idx]
+    @app_commands.command(name="scan", description="Scan the YouTube channels and output details to console.")
+    async def manual_youtube_scan(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
+        await self.youtube_scan()
+        self.logger.info(f"Extras.cog: /scan by {interaction.user.id} complete!")
+        await interaction.edit_original_response(content="Done!")
 
-            channel_to_regex = channels["channel_names"][channel_counter]
-
-            # Extract details using regex
-            upload_channel = re.search(r'(?<=by\s)' + channel_to_regex, full_upload_data)[0].rstrip(" ")
-            upload_title = re.findall(rf"^.*?(?=by {channel_to_regex})", full_upload_data)[0].strip()
-            upload_title = bytes(upload_title, 'utf-8').decode('unicode_escape')  # Parse any Unicodes: \uu0026 = &
-
-            # Search DB record for current upload document
-            key = {"youtube_channel_name": upload_channel}
-            search_result = None
-            async for result in self.db.youtube_uploads.find(key):
-                search_result = result
-                # self.logger.debug(f"Extras.cog: Found {upload_channel} under: ObjectID:{result['_id']}")
-
-            if search_result is None:  # No existing record found - DB or lookup error? - Create replacement
-                self.logger.critical(f"[!] Extras.cog: No existing record for [{upload_channel}] found [!]")
-                await self.db.youtube_uploads.insert_one(
-                    {
-                        "youtube_channel_name": str(f"{upload_channel}"),
-                        "upload_title": str(f"{upload_title}"),
-                        "last_updated": float(f"{datetime.now().timestamp()}")
-                    }
-                )
-
-            elif search_result["upload_title"] == upload_title:  # Both upload titles match - no change
-                self.logger.debug(f"Current upload for [{upload_channel}] matches existing record - No Change.")
-
-            elif upload_title != search_result["upload_title"]:  # Existing upload title outdated - update record
-                upload_updated_value = {
-                    "$set": {
-                        "youtube_channel_name": str(f"{upload_channel}"),
-                        "upload_title": str(f"{upload_title}"),
-                        "last_updated": float(f"{datetime.now().timestamp()}")
-                    }
-                }
-
-                db_filter = {"youtube_channel_name": upload_channel}  # Filter by old upload title
-                await self.db.youtube_uploads.update_one(db_filter, upload_updated_value)
-
-                # Send new upload embed to #youtube-feed
-                self.logger.debug(f"New upload for [{upload_channel}] has been found! Posting to #youtube-feed.")
-                youtube_webhook = discord.SyncWebhook.from_url(os.getenv("DEV_YOUTUBE_URL"))
-                youtube_webhook.send(f"{upload_title}: https://youtube.com/watch?v={url_id}")
-
-            channel_counter += 1
-
-        self.logger.info(f"Extras.cog: YouTube Scan complete!")
-        # self.logger.info(f"Extras.cog: /scan by {interaction.user.id} complete!") - USE FOR MANUAL
-        # await interaction.edit_original_response(content="Done!") - USE FOR MANUAL
-
-    @tasks.loop(minutes=15)  # RATE LIMIT IS 10 minutes ish
+    @tasks.loop(minutes=20)  # RATE LIMIT IS 10 minutes ish
     async def resonance_update(self):
         # Retrieve leaderboard DB
         stats_out = None
