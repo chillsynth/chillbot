@@ -24,7 +24,7 @@ class Extras(commands.Cog):
         # Cancel the task loops when unloaded
         self.youtube_scan.cancel()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=20)
     async def youtube_scan(self):
         channels = [
                 "https://www.youtube.com/feeds/videos.xml?channel_id=UCPzWlhG7QM56Y8MYB3qMVnQ",  # ELECTRONIC GEMS
