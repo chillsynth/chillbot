@@ -48,9 +48,9 @@ class Extras(commands.Cog):
             self.logger.info(f"Time diff: {time_diff}")
 
             if time_diff.days == 0:
-                if time_diff.seconds >= 600:  # 600 = 10 minutes per scan - OLD UPLOAD
+                if time_diff.seconds >= 1200:  # 1200 = 20 minutes per scan - OLD UPLOAD
                     self.logger.debug(f"{upload_channel}: No new posts.")
-                elif time_diff.seconds < 600:  # NEW UPLOAD - YIPPEE!  --  Send new upload embed to #youtube-feed
+                elif time_diff.seconds < 1200:  # NEW UPLOAD - YIPPEE!  --  Send new upload embed to #youtube-feed
                     self.logger.debug(f"New upload for [{upload_channel}] has been found! Posting to #youtube-feed.")
 
                     youtube_webhook = discord.SyncWebhook.from_url(os.getenv("DEV_YOUTUBE_URL"))
