@@ -92,7 +92,6 @@ jobs:
   #         git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
   #         git push
   build-and-push-image:
-    needs: prepare-configmap
     name: Build and push image
     runs-on: ubuntu-latest
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
