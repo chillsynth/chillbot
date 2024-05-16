@@ -1,9 +1,23 @@
-FROM python:slim-bookworm
+FROM golang:latest as build
 
-WORKDIR /chillbot
-COPY ./ /chillbot/
+WORKDIR /usr/src/app
 
-RUN apt install tzdata
-RUN pip install -r requirements.txt
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
-CMD ["python", "-u", "bot"]
+COPY . .
+
+# RUN go build -ldflags "-w -s" ./cmd/gocamp
+RUN go build -ldflags "-w -s" -v -o /usr/local/bin/chillbot .
+
+FROM scratch
+
+# EXPOSE 8080
+
+WORKDIR /app
+
+COPY --from=build /usr/local/bin/chillbot /app/chillbot
+# COPY ./config/ /app/config/
+
+CMD ["/app/chillbot"]

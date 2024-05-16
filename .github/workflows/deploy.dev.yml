@@ -1,0 +1,159 @@
+#
+name: Deploy Chillbot to dev
+# Configures this workflow to run every time a change is pushed to the branch called `release`.
+on:
+  push:
+    branches: ["go-rewrite"]
+
+# Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
+env:
+  APP_NAME: chillbot
+  ENVIRONMENT: dev
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
+jobs:
+  push-secrets:
+    runs-on: ubuntu-latest
+    name: Push secrets to cluster
+    steps:
+      - name: Generate secret yaml
+        uses: and-fm/k8s-yaml-action@main
+        id: gen-secret
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-secrets
+          namespace: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+          secrets: |-
+            DISCORD_CLIENT_ID:${{secrets.DISCORD_DEV_CLIENT_ID}}
+            DISCORD_CLIENT_SECRET:${{secrets.DISCORD_DEV_CLIENT_SECRET}}
+      - name: Seal secrets
+        uses: and-fm/kubeseal-action@main
+        id: seal-secret
+        with:
+          pem_url: https://seal.and.fm/v1/cert.pem
+          secrets_yaml: ${{ steps.gen-secret.outputs.out_yaml }}
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: and-fm/infra
+          token: ${{ secrets.GH_PAT }}
+          submodules: true
+      - name: Push secrets to cluster
+        run: |
+          git config --global user.name 'andfm-infra'
+          git config --global user.email 'infra@and.fm'
+
+          cd k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+
+          echo "${{ steps.seal-secret.outputs.out_yaml}}" > ${{ env.APP_NAME }}-sealed-secret.yaml
+
+          git add ${{ env.APP_NAME }}-sealed-secret.yaml
+          git commit -m "push ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} sealed secrets"
+          git push
+  # prepare-configmap:
+  #   runs-on: ubuntu-latest
+  #   name: Prepare ConfigMap
+  #   steps:
+  #     - name: Checkout ${{ env.APP_NAME }} repo
+  #       uses: actions/checkout@v4
+  #     - name: Setup kubectl
+  #       uses: azure/setup-kubectl@v4
+  #     - name: Create configmap file
+  #       id: create-configmap
+  #       run: |
+  #         cp config/config.dev.json config.json
+  #         kubectl create configmap ${{ env.APP_NAME }}-configmap-json --dry-run=client --from-file=config.json -n ${{ env.APP_NAME }}-dev -o yaml >> ${{ env.APP_NAME }}-configmap.yaml
+  #         echo 'configmap<<EOF' >> $GITHUB_OUTPUT
+  #         cat ${{ env.APP_NAME }}-configmap.yaml >> $GITHUB_OUTPUT
+  #         echo "EOF" >> $GITHUB_OUTPUT
+  #     - name: Checkout infra repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: and-fm/infra
+  #         token: ${{ secrets.GH_PAT }}
+  #         submodules: true
+  #     - name: Copy configmap to repo
+  #       env:
+  #         CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
+  #       run: |
+  #         echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}/${{ env.APP_NAME }}-configmap.yaml
+
+  #     - name: Check if there are any changes
+  #       id: verify_diff
+  #       run: |
+  #         git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
+
+  #     - name: Push configmap to k8s
+  #       if: steps.verify_diff.outputs.changed == 'true'
+  #       run: |
+  #         git config --global user.name 'andfm-infra'
+  #         git config --global user.email 'infra@and.fm'
+  #         git add k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
+  #         git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
+  #         git push
+  build-and-push-image:
+    needs: prepare-configmap
+    name: Build and push image
+    runs-on: ubuntu-latest
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      imageDigest: ${{ steps.build.outputs.digest }}
+      #
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
+      # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
+      # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        id: build
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  update-infra-manifests:
+    needs: build-and-push-image
+    name: Update Infra Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: and-fm/infra
+          token: ${{ secrets.GH_PAT }}
+      - name: Update image tag values
+        env:
+          IMAGE_DIGEST: ${{needs.build-and-push-image.outputs.imageDigest}}
+          APP_NAME: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+        run: |
+          app_dir="k8s/applications/$APP_NAME"
+
+          mv $app_dir/$APP_NAME-deployment.yaml $app_dir/$APP_NAME-deployment.yaml.old
+          sed -e "s/$APP_NAME@sha256:.*/$APP_NAME@$IMAGE_DIGEST/" "$app_dir/$APP_NAME-deployment.yaml.old" > $app_dir/$APP_NAME-deployment.yaml
+          rm $app_dir/$APP_NAME-deployment.yaml.old
+      - name: Push changes
+        run: |
+          git config --global user.name 'andfm-infra'
+          git config --global user.email 'infra@and.fm'
+          git add .
+          git commit -m "deploying new $APP_NAME image hash"
+          git push
