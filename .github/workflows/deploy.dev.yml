@@ -10,7 +10,7 @@ env:
   APP_NAME: chillbot
   ENVIRONMENT: dev
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+  IMAGE_NAME: chillbot-dev
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
@@ -25,7 +25,6 @@ jobs:
           name: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-secrets
           namespace: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
           secrets: |-
-            DISCORD_CLIENT_ID:${{secrets.DISCORD_DEV_CLIENT_ID}}
             DISCORD_CLIENT_SECRET:${{secrets.DISCORD_DEV_CLIENT_SECRET}}
       - name: Seal secrets
         uses: and-fm/kubeseal-action@main
