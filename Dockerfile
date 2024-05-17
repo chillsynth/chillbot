@@ -19,6 +19,6 @@ WORKDIR /app
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /usr/local/bin/chillbot /app/chillbot
-# COPY ./config/ /app/config/
+COPY ./config/ /app/config/
 
 CMD ["/app/chillbot"]
