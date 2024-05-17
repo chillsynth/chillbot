@@ -2,7 +2,7 @@ package main
 
 import (
 	"chillbot/internal/config"
-	reactions "chillbot/internal/reactions"
+	"chillbot/internal/reactions"
 	"fmt"
 	"log"
 	"log/slog"
@@ -13,9 +13,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func main () {
+func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	
+
 	conf := &config.Config{}
 
 	conf.Load(logger)

@@ -1,4 +1,4 @@
-package emojireactions
+package reactions
 
 import (
 	"chillbot/internal/config"
