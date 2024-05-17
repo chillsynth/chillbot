@@ -20,8 +20,8 @@ func getReaction(r map[string]config.Reaction) (string, config.Reaction) {
 }
 
 func React(s *discordgo.Session, m *discordgo.MessageCreate, conf *config.Config, l *slog.Logger) {
-	for _, messageReactions := range conf.Reactions.InMessage {
-		key, val := getReaction(messageReactions)
+	for _, messageReaction := range conf.Reactions.InMessage {
+		key, val := getReaction(messageReaction)
 		if strings.Contains(m.Content, key) {
 			err := s.MessageReactionAdd(m.Message.ChannelID, m.Message.ID, *val.Emoji)
 			if err != nil {
@@ -31,11 +31,11 @@ func React(s *discordgo.Session, m *discordgo.MessageCreate, conf *config.Config
 
 	}
 
-	for _, stickerNameReactions := range conf.Reactions.InStickerName {
+	for _, stickerNameReaction := range conf.Reactions.InStickerName {
 		if len(m.StickerItems) == 0 {
 			break
 		}
-		key, val := getReaction(stickerNameReactions)
+		key, val := getReaction(stickerNameReaction)
 		if strings.Contains(m.StickerItems[0].Name, key) {
 			_, err := s.ChannelMessageSend(m.ChannelID, *val.Message)
 			if err != nil {
