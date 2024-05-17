@@ -4,7 +4,6 @@ import (
 	"chillbot/internal/config"
 	"chillbot/internal/reactions"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -30,7 +29,7 @@ func main() {
 	}
 
 	discord.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		logger.Info(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 	})
 
 	// Listen to new messages
