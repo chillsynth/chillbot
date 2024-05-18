@@ -32,7 +32,7 @@ func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 		gm.Discord.ChannelMessageSend(gm.Config.LoungeChannelID,
 			fmt.Sprintf("**Hello %s and welcome to ChillSynth!**", g.Mention()))
 
-		_, e := gm.Discord.ChannelMessageSendEmbed(gm.Config.LoungeChannelID, &discordgo.MessageEmbed{
+		gm.Discord.ChannelMessageSendEmbed(gm.Config.LoungeChannelID, &discordgo.MessageEmbed{
 			Description: fmt.Sprintf(
 				"### <:Discord_Invite:1140057489941995650> Head over to <#%s> to grab your roles \n"+
 					"### <:Discord_Message_SpeakTTS:1140059207106826271> "+
@@ -44,9 +44,6 @@ func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 				Text: "If you have any questions, feel free to @ one of our moderators!",
 			},
 		})
-		if e != nil {
-			fmt.Println(e)
-		}
 	}
 }
 
