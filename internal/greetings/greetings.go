@@ -23,7 +23,7 @@ func (gm *GreetingsModule) Init(deps *module.CommonDeps) {
 }
 
 func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
-	if g.Member.User.Bot || g.BeforeUpdate == nil {
+	if g.Member.User.Bot || g.BeforeUpdate == nil || g.GuildID != gm.Config.GuildID {
 		return
 	}
 	if gm.hasUserJustBeenVerified(g) {
@@ -48,5 +48,5 @@ func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 }
 
 func (gm *GreetingsModule) hasUserJustBeenVerified(g *discordgo.GuildMemberUpdate) bool {
-	return true || g.BeforeUpdate.Pending && !g.Pending && !slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
+	return g.BeforeUpdate.Pending && !g.Pending && !slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
 }
