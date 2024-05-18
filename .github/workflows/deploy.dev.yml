@@ -10,7 +10,6 @@ env:
   APP_NAME: chillbot
   ENVIRONMENT: dev
   REGISTRY: ghcr.io
-  CONFIG_FILE: k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
@@ -53,6 +52,8 @@ jobs:
   prepare-configmap:
     runs-on: ubuntu-latest
     name: Prepare ConfigMap
+    env:
+      CONFIG_FILE: k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
     steps:
       - name: Checkout ${{ env.APP_NAME }} repo
         uses: actions/checkout@v4
@@ -77,7 +78,7 @@ jobs:
           CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
         run: |
           echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
-          git add -N ${{ env.CONFIG_FILE }}  
+          git add -N $CONFIG_FILE
       - name: Check if there are any changes
         id: verify_diff
         run: |
@@ -88,7 +89,7 @@ jobs:
         run: |
           git config --global user.name 'andfm-infra'
           git config --global user.email 'infra@and.fm'
-          git add ${{ env.CONFIG_FILE }}
+          git add $CONFIG_FILE
           git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
           git push
   build-and-push-image:
