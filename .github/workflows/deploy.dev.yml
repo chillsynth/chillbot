@@ -76,7 +76,7 @@ jobs:
           CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
         run: |
           echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
-
+          git add k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
       - name: Check if there are any changes
         id: verify_diff
         run: |
@@ -87,7 +87,6 @@ jobs:
         run: |
           git config --global user.name 'andfm-infra'
           git config --global user.email 'infra@and.fm'
-          git add k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
           git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
           git push
   build-and-push-image:
