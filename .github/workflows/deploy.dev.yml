@@ -13,42 +13,42 @@ env:
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  # push-secrets:
-  #   runs-on: ubuntu-latest
-  #   name: Push secrets to cluster
-  #   steps:
-  #     - name: Generate secret yaml
-  #       uses: and-fm/k8s-yaml-action@main
-  #       id: gen-secret
-  #       with:
-  #         name: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-secrets
-  #         namespace: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
-  #         secrets: |-
-  #           DISCORD_CLIENT_SECRET:${{secrets.DISCORD_DEV_CLIENT_SECRET}}
-  #     - name: Seal secrets
-  #       uses: and-fm/kubeseal-action@main
-  #       id: seal-secret
-  #       with:
-  #         pem_url: https://seal.and.fm/v1/cert.pem
-  #         secrets_yaml: ${{ steps.gen-secret.outputs.out_yaml }}
-  #     - name: Checkout infra repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: and-fm/infra
-  #         token: ${{ secrets.GH_PAT }}
-  #         submodules: true
-  #     - name: Push secrets to cluster
-  #       run: |
-  #         git config --global user.name 'andfm-infra'
-  #         git config --global user.email 'infra@and.fm'
+  push-secrets:
+    runs-on: ubuntu-latest
+    name: Push secrets to cluster
+    steps:
+      - name: Generate secret yaml
+        uses: and-fm/k8s-yaml-action@main
+        id: gen-secret
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-secrets
+          namespace: ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+          secrets: |-
+            DISCORD_CLIENT_SECRET:${{secrets.DISCORD_DEV_CLIENT_SECRET}}
+      - name: Seal secrets
+        uses: and-fm/kubeseal-action@main
+        id: seal-secret
+        with:
+          pem_url: https://seal.and.fm/v1/cert.pem
+          secrets_yaml: ${{ steps.gen-secret.outputs.out_yaml }}
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: and-fm/infra
+          token: ${{ secrets.GH_PAT }}
+          submodules: true
+      - name: Push secrets to cluster
+        run: |
+          git config --global user.name 'andfm-infra'
+          git config --global user.email 'infra@and.fm'
 
-  #         cd k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
+          cd k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}
 
-  #         echo "${{ steps.seal-secret.outputs.out_yaml}}" > ${{ env.APP_NAME }}-sealed-secret.yaml
+          echo "${{ steps.seal-secret.outputs.out_yaml}}" > ${{ env.APP_NAME }}-sealed-secret.yaml
 
-  #         git add ${{ env.APP_NAME }}-sealed-secret.yaml
-  #         git commit -m "push ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} sealed secrets"
-  #         git push
+          git add ${{ env.APP_NAME }}-sealed-secret.yaml
+          git commit -m "push ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} sealed secrets"
+          git push
   # prepare-configmap:
   #   runs-on: ubuntu-latest
   #   name: Prepare ConfigMap
