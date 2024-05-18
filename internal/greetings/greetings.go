@@ -26,9 +26,9 @@ func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 		return
 	}
 	if gm.hasUserJustBeenVerified(g) {
-		gm.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, gm.Config.OnlineRoleID)
+		go gm.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, gm.Config.OnlineRoleID)
 
-		gm.Discord.ChannelMessageSend(gm.Config.LoungeChannelID, "Welcome! "+g.Mention())
+		go gm.Discord.ChannelMessageSend(gm.Config.LoungeChannelID, "Welcome! "+g.Mention())
 	}
 }
 
