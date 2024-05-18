@@ -2,7 +2,7 @@ package reactions
 
 import (
 	"chillbot/internal/config"
-	"chillbot/internal/logging"
+	"chillbot/internal/module"
 	"log/slog"
 	"strings"
 
@@ -10,9 +10,13 @@ import (
 )
 
 type ReactorModule struct {
-	Discord *discordgo.Session
-	Logger  *logging.Logger
-	Config  *config.Config
+	module.CommonDeps
+}
+
+func (rm *ReactorModule) Init(deps *module.CommonDeps) {
+	rm.Discord = deps.Discord
+	rm.Logger = deps.Logger
+	rm.Config = deps.Config
 }
 
 func getReaction(r map[string]config.Reaction) (string, config.Reaction) {

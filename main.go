@@ -3,6 +3,7 @@ package main
 import (
 	"chillbot/internal/config"
 	"chillbot/internal/logging"
+	"chillbot/internal/module"
 	"chillbot/internal/reactions"
 	"fmt"
 	"log"
@@ -22,9 +23,7 @@ var (
 )
 
 type Bot struct {
-	Discord *discordgo.Session
-	Logger  *logging.Logger
-	Config  *config.Config
+	module.CommonDeps
 }
 
 func createDiscordSession() (*discordgo.Session, error) {
@@ -34,6 +33,12 @@ func createDiscordSession() (*discordgo.Session, error) {
 	discord, err := discordgo.New("Bot " + token)
 
 	return discord, err
+}
+
+func (b *Bot) Init(deps *module.CommonDeps) {
+	b.Discord = deps.Discord
+	b.Logger = deps.Logger
+	b.Config = deps.Config
 }
 
 func (b *Bot) runBot() {
@@ -89,19 +94,19 @@ func main() {
 		log.Fatalf("error creating Discord session %s", err)
 	}
 
-	// Initialize Modules
-	reactor = reactions.ReactorModule{
+	deps := &module.CommonDeps{
 		Discord: discord,
 		Logger:  logger,
 		Config:  conf,
 	}
 
+	// Initialize Modules
+	reactor = reactions.ReactorModule{}
+	reactor.Init(deps)
+
 	// Initialize Bot
-	bot := &Bot{
-		Discord: discord,
-		Logger:  logger,
-		Config:  conf,
-	}
+	bot := &Bot{}
+	bot.Init(deps)
 
 	bot.runBot()
 }
