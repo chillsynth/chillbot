@@ -17,6 +17,10 @@ func (rm *ReactorModule) Init(deps *module.CommonDeps) {
 	rm.Discord = deps.Discord
 	rm.Logger = deps.Logger
 	rm.Config = deps.Config
+
+	rm.Discord.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		go rm.React(m)
+	})
 }
 
 func getReaction(r map[string]config.Reaction) (string, config.Reaction) {

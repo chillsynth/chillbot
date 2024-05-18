@@ -61,8 +61,6 @@ func (b *Bot) runBot() {
 		if m.Content == "pong" {
 			s.ChannelMessageSend(m.ChannelID, "Ping!")
 		}
-
-		reactor.React(m)
 	})
 
 	discord.Identify.Intents = discordgo.IntentsGuildMessages

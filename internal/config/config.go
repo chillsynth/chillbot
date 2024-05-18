@@ -8,7 +8,10 @@ import (
 )
 
 type Config struct {
-	Reactions Reactions `json:"reactions"`
+	GuildID         string    `json:"guild_id"`
+	LoungeChannelID string    `json:"lounge_channel_id"`
+	OnlineRoleID    string    `json:"online_role_id"`
+	Reactions       Reactions `json:"reactions"`
 }
 
 type Reactions struct {
