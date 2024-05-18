@@ -29,7 +29,8 @@
 
 ## Running locally
 Copy `.env.example` to `.env`  
-Put your bot token in the `DISCORD_CLIENT_SECRET` variable
+Put your bot token in the `DISCORD_CLIENT_SECRET` variable  
+The `config.json` config is active while running locally
 
 Make sure you have `make` installed  
 Run `make run/live`.  
@@ -37,11 +38,13 @@ Now you have auto reloading when changing code files!
 
 ## Running in the dev environment
 Put your bot token in Github the actions secret `DISCORD_DEV_CLIENT_SECRET`  
-Simply push your code to the develop branch and it will auto deploy in about a minute
+Simply push your code to the develop branch and it will auto deploy in about a minute  
+The `config.dev.json` config is active while running in the dev environment
 
 ## Running in the production environment (not setup yet)
 Put your bot token in Github the actions secret `DISCORD_PROD_CLIENT_SECRET`  
 ~~Simply push your code to the main branch and it will auto deploy in about a minute~~  
 Add your new version with changes to CHANGELOG.md  
 Make a pull request from develop into main  
-Complete that PR and the new version will get auto tagged and released on github and deployed to the prod environment
+Complete that PR and the new version will get auto tagged and released on github and deployed to the prod environment  
+The `config.prod.json` config is active while running in the prod environment
