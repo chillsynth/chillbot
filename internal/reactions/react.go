@@ -2,6 +2,7 @@ package reactions
 
 import (
 	"chillbot/internal/config"
+	"chillbot/internal/logging"
 	"log/slog"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 
 type ReactorModule struct {
 	Discord *discordgo.Session
-	Logger  *slog.Logger
+	Logger  *logging.Logger
 	Config  *config.Config
 }
 
@@ -31,7 +32,7 @@ func (rm *ReactorModule) React(m *discordgo.MessageCreate) {
 		if strings.Contains(m.Content, key) {
 			err := rm.Discord.MessageReactionAdd(m.Message.ChannelID, m.Message.ID, *val.Emoji)
 			if err != nil {
-				rm.Logger.Error("Cannot add reaction", slog.String("error", err.Error()))
+				rm.Logger.LogError("Cannot add reaction", slog.String("error", err.Error()))
 			}
 		}
 
@@ -45,7 +46,7 @@ func (rm *ReactorModule) React(m *discordgo.MessageCreate) {
 		if strings.Contains(m.StickerItems[0].Name, key) {
 			_, err := rm.Discord.ChannelMessageSend(m.ChannelID, *val.Message)
 			if err != nil {
-				rm.Logger.Error("Cannot send message", slog.String("error", err.Error()))
+				rm.Logger.LogError("Cannot send message", slog.String("error", err.Error()))
 			}
 		}
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"chillbot/internal/logging"
 	"encoding/json"
 	"log/slog"
 	"os"
@@ -11,29 +12,29 @@ type Config struct {
 }
 
 type Reactions struct {
-	InMessage []map[string]Reaction `json:"inMessage"`
+	InMessage     []map[string]Reaction `json:"inMessage"`
 	InStickerName []map[string]Reaction `json:"inStickerName"`
 }
 
 type Reaction struct {
-	Emoji *string `json:"emoji"`
+	Emoji   *string `json:"emoji"`
 	Message *string `json:"message"`
 }
 
-func (c *Config) Load(l *slog.Logger) {
+func (c *Config) Load(l *logging.Logger) {
 	dir, _ := os.Getwd()
 
 	dat, err := os.ReadFile(dir + "/config/config.json")
 
 	if err != nil {
-		l.Error("Cannot load config file", slog.String("error", err.Error()))
+		l.LogError("Cannot load config file", slog.String("error", err.Error()))
 		panic("Cannot load config file")
 	}
 
 	err = json.Unmarshal(dat, c)
 
 	if err != nil {
-		l.Error("Cannot load config file", slog.String("error", err.Error()))
+		l.LogError("Cannot load config file", slog.String("error", err.Error()))
 		panic("Cannot load config file")
 	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"chillbot/internal/config"
+	"chillbot/internal/logging"
 	"chillbot/internal/reactions"
 	"fmt"
 	"log"
@@ -22,7 +23,7 @@ var (
 
 type Bot struct {
 	Discord *discordgo.Session
-	Logger  *slog.Logger
+	Logger  *logging.Logger
 	Config  *config.Config
 }
 
@@ -39,7 +40,7 @@ func (b *Bot) runBot() {
 	discord, logger, _ := b.Discord, b.Logger, b.Config
 
 	discord.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		logger.Info(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
+		logger.LogInfo(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 	})
 
 	// Listen to new messages
@@ -76,7 +77,9 @@ func (b *Bot) runBot() {
 }
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := &logging.Logger{
+		Slog: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	}
 
 	conf := &config.Config{}
 	conf.Load(logger)
@@ -94,7 +97,11 @@ func main() {
 	}
 
 	// Initialize Bot
-	bot := &Bot{Discord: discord, Logger: logger, Config: conf}
+	bot := &Bot{
+		Discord: discord,
+		Logger:  logger,
+		Config:  conf,
+	}
 
 	bot.runBot()
 }
