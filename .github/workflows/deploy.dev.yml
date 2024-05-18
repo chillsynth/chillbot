@@ -75,7 +75,7 @@ jobs:
         env:
           CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
         run: |
-          echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}/${{ env.APP_NAME }}-configmap.yaml
+          echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
 
       - name: Check if there are any changes
         id: verify_diff
