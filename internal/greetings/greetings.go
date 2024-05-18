@@ -33,5 +33,5 @@ func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 }
 
 func (gm *GreetingsModule) hasUserJustBeenVerified(g *discordgo.GuildMemberUpdate) bool {
-	return g.BeforeUpdate.Pending && !g.Pending && slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
+	return !slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
 }
