@@ -2,6 +2,7 @@ package main
 
 import (
 	"chillbot/internal/config"
+	"chillbot/internal/greetings"
 	"chillbot/internal/logging"
 	"chillbot/internal/module"
 	"chillbot/internal/reactions"
@@ -20,6 +21,7 @@ import (
 // in the main function as we do with ReactorModule
 var (
 	reactor reactions.ReactorModule
+	greeter greetings.GreetingsModule
 )
 
 type Bot struct {
@@ -63,7 +65,7 @@ func (b *Bot) runBot() {
 		}
 	})
 
-	discord.Identify.Intents = discordgo.IntentsGuildMessages
+	discord.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentGuildMembers
 
 	err := discord.Open()
 	if err != nil {
@@ -101,6 +103,10 @@ func main() {
 	// Initialize Modules
 	reactor = reactions.ReactorModule{}
 	reactor.Init(deps)
+
+	// Initialize greeter
+	greeter = greetings.GreetingsModule{}
+	greeter.Init(deps)
 
 	// Initialize Bot
 	bot := &Bot{}

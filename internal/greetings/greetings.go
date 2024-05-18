@@ -22,16 +22,16 @@ func (gm *GreetingsModule) Init(deps *module.CommonDeps) {
 }
 
 func (gm *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
-	if g.BeforeUpdate.User.Bot {
+	if g.Member.User.Bot || g.BeforeUpdate == nil {
 		return
 	}
 	if gm.hasUserJustBeenVerified(g) {
-		go gm.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, gm.Config.OnlineRoleID)
+		gm.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, gm.Config.OnlineRoleID)
 
-		go gm.Discord.ChannelMessageSend(gm.Config.LoungeChannelID, "Welcome! "+g.Mention())
+		gm.Discord.ChannelMessageSend(gm.Config.LoungeChannelID, "Welcome! "+g.Mention())
 	}
 }
 
 func (gm *GreetingsModule) hasUserJustBeenVerified(g *discordgo.GuildMemberUpdate) bool {
-	return !slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
+	return g.BeforeUpdate.Pending && !g.Pending && !slices.Contains(g.BeforeUpdate.Roles, gm.Config.OnlineRoleID)
 }
