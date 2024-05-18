@@ -52,9 +52,11 @@ jobs:
   prepare-configmap:
     runs-on: ubuntu-latest
     name: Prepare ConfigMap
-    env:
-      CONFIG_FILE: k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
     steps:
+      - name: Set config file name
+        run: |
+          IMG_NAME=${{ github.repository }}-dev
+          echo "CONFIG_FILE=k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml" >>${GITHUB_ENV}
       - name: Checkout ${{ env.APP_NAME }} repo
         uses: actions/checkout@v4
       - name: Setup kubectl
@@ -78,7 +80,7 @@ jobs:
           CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
         run: |
           echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
-          git add -N $CONFIG_FILE
+          git add -N ${{ env.CONFIG_FILE }}
       - name: Check if there are any changes
         id: verify_diff
         run: |
@@ -89,7 +91,7 @@ jobs:
         run: |
           git config --global user.name 'andfm-infra'
           git config --global user.email 'infra@and.fm'
-          git add $CONFIG_FILE
+          git add ${{ env.CONFIG_FILE }}
           git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
           git push
   build-and-push-image:
