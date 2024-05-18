@@ -49,47 +49,47 @@ jobs:
           git add ${{ env.APP_NAME }}-sealed-secret.yaml
           git commit -m "push ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} sealed secrets"
           git push
-  # prepare-configmap:
-  #   runs-on: ubuntu-latest
-  #   name: Prepare ConfigMap
-  #   steps:
-  #     - name: Checkout ${{ env.APP_NAME }} repo
-  #       uses: actions/checkout@v4
-  #     - name: Setup kubectl
-  #       uses: azure/setup-kubectl@v4
-  #     - name: Create configmap file
-  #       id: create-configmap
-  #       run: |
-  #         cp config/config.dev.json config.json
-  #         kubectl create configmap ${{ env.APP_NAME }}-configmap-json --dry-run=client --from-file=config.json -n ${{ env.APP_NAME }}-dev -o yaml >> ${{ env.APP_NAME }}-configmap.yaml
-  #         echo 'configmap<<EOF' >> $GITHUB_OUTPUT
-  #         cat ${{ env.APP_NAME }}-configmap.yaml >> $GITHUB_OUTPUT
-  #         echo "EOF" >> $GITHUB_OUTPUT
-  #     - name: Checkout infra repo
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: and-fm/infra
-  #         token: ${{ secrets.GH_PAT }}
-  #         submodules: true
-  #     - name: Copy configmap to repo
-  #       env:
-  #         CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
-  #       run: |
-  #         echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}/${{ env.APP_NAME }}-configmap.yaml
+  prepare-configmap:
+    runs-on: ubuntu-latest
+    name: Prepare ConfigMap
+    steps:
+      - name: Checkout ${{ env.APP_NAME }} repo
+        uses: actions/checkout@v4
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Create configmap file
+        id: create-configmap
+        run: |
+          cp config/config.dev.json config.json
+          kubectl create configmap ${{ env.APP_NAME }}-configmap-json --dry-run=client --from-file=config.json -n ${{ env.APP_NAME }}-dev -o yaml >> ${{ env.APP_NAME }}-configmap.yaml
+          echo 'configmap<<EOF' >> $GITHUB_OUTPUT
+          cat ${{ env.APP_NAME }}-configmap.yaml >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: and-fm/infra
+          token: ${{ secrets.GH_PAT }}
+          submodules: true
+      - name: Copy configmap to repo
+        env:
+          CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
+        run: |
+          echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}/${{ env.APP_NAME }}-configmap.yaml
 
-  #     - name: Check if there are any changes
-  #       id: verify_diff
-  #       run: |
-  #         git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
+      - name: Check if there are any changes
+        id: verify_diff
+        run: |
+          git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
 
-  #     - name: Push configmap to k8s
-  #       if: steps.verify_diff.outputs.changed == 'true'
-  #       run: |
-  #         git config --global user.name 'andfm-infra'
-  #         git config --global user.email 'infra@and.fm'
-  #         git add k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
-  #         git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
-  #         git push
+      - name: Push configmap to k8s
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config --global user.name 'andfm-infra'
+          git config --global user.email 'infra@and.fm'
+          git add k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
+          git commit -m "deploying ${{ env.APP_NAME }}-${{ env.ENVIRONMENT }} configmap"
+          git push
   build-and-push-image:
     name: Build and push image
     runs-on: ubuntu-latest

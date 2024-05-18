@@ -1,0 +1,24 @@
+{
+    "reactions": {
+      "inMessage": [
+        {
+          "resonance": {
+            "emoji": "resonanceDEV:1020142646787837992"
+          }
+        },
+        {
+          "electronic gem": {
+            "emoji": "egemDEV:1062784474351403068"
+          }
+        }
+      ],
+      "inStickerName": [
+        {
+          "Live Albert Reaction": {
+            "message": "<@615822182454657025>"
+          }
+        }
+      ]
+    }
+  }
+  
