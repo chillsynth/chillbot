@@ -4,6 +4,7 @@ import (
 	"chillbot/internal/config"
 	"chillbot/internal/reactions"
 	"fmt"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -12,21 +13,30 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+// To add more modules, copy the reactions code and rename it
+// add a reference to the new module here, then register it
+// in the main function as we do with ReactorModule
+var (
+	reactor reactions.ReactorModule
+)
 
-	conf := &config.Config{}
+type Bot struct {
+	Discord *discordgo.Session
+	Logger  *slog.Logger
+	Config  *config.Config
+}
 
-	conf.Load(logger)
-
+func createDiscordSession() (*discordgo.Session, error) {
 	token := os.Getenv("DISCORD_CLIENT_SECRET")
 
+	// New Discord session
 	discord, err := discordgo.New("Bot " + token)
 
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
-	}
+	return discord, err
+}
+
+func (b *Bot) runBot() {
+	discord, logger, _ := b.Discord, b.Logger, b.Config
 
 	discord.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		logger.Info(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
@@ -46,15 +56,14 @@ func main() {
 			s.ChannelMessageSend(m.ChannelID, "Ping!")
 		}
 
-		reactions.React(s, m, conf, logger)
+		reactor.React(m)
 	})
 
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
 
-	err = discord.Open()
+	err := discord.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
+		log.Fatalf("Unable to open a connection to Discord %s", err)
 	}
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
@@ -64,4 +73,28 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	discord.Close()
+}
+
+func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	conf := &config.Config{}
+	conf.Load(logger)
+
+	discord, err := createDiscordSession()
+	if err != nil {
+		log.Fatalf("error creating Discord session %s", err)
+	}
+
+	// Initialize Modules
+	reactor = reactions.ReactorModule{
+		Discord: discord,
+		Logger:  logger,
+		Config:  conf,
+	}
+
+	// Initialize Bot
+	bot := &Bot{Discord: discord, Logger: logger, Config: conf}
+
+	bot.runBot()
 }
