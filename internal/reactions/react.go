@@ -19,7 +19,7 @@ func (rm *ReactorModule) Init(deps *module.CommonDeps) {
 	rm.Config = deps.Config
 
 	rm.Discord.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		go rm.React(m)
+		rm.React(m)
 	})
 }
 
