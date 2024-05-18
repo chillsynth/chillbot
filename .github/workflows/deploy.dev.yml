@@ -74,9 +74,11 @@ jobs:
       - name: Copy configmap to repo
         env:
           CONFIGMAP: ${{ steps.create-configmap.outputs.configmap }}
+          CONFIG_FILE: k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
         run: |
           echo "$CONFIGMAP" > k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
-          git add -N k8s/applications/${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}/${{ env.APP_NAME }}-configmap.yaml
+          git add -N $CONFIG_FILE
+          git add CONFIG_FILE
       - name: Check if there are any changes
         id: verify_diff
         run: |
