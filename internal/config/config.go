@@ -3,7 +3,6 @@ package config
 import (
 	"chillbot/internal/logging"
 	"encoding/json"
-	"log/slog"
 	"os"
 )
 
@@ -31,14 +30,12 @@ func (c *Config) Load(l *logging.Logger) {
 	dat, err := os.ReadFile(dir + "/config/config.json")
 
 	if err != nil {
-		l.LogError("Cannot load config file", slog.String("error", err.Error()))
-		panic("Cannot load config file")
+		l.LogFatal("Cannot load config file %s", err.Error())
 	}
 
 	err = json.Unmarshal(dat, c)
 
 	if err != nil {
-		l.LogError("Cannot load config file", slog.String("error", err.Error()))
-		panic("Cannot load config file")
+		l.LogFatal("Cannot load config file %s", err.Error())
 	}
 }

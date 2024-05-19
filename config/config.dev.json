@@ -1,28 +1,27 @@
 {
-    "guild_id": "1015751167470473306",
-    "lounge_channel_id": "1015751168409997395",
-    "feedback_channel_id": "1015751168552620096",
-    "online_role_id": "1015751167470473311",
-    "reactions": {
-      "inMessage": [
-        {
-          "resonance": {
-            "emoji": "resonanceDEV:1020142646787837992"
-          }
-        },
-        {
-          "electronic gem": {
-            "emoji": "egemDEV:1062784474351403068"
-          }
+  "guild_id": "1015751167470473306",
+  "lounge_channel_id": "1015751168409997395",
+  "feedback_channel_id": "1015751168552620096",
+  "online_role_id": "1015751167470473311",
+  "reactions": {
+    "inMessage": [
+      {
+        "resonance": {
+          "emoji": "resonanceDEV:1020142646787837992"
         }
-      ],
-      "inStickerName": [
-        {
-          "Live Albert Reaction": {
-            "message": "<@615822182454657025>"
-          }
+      },
+      {
+        "electronic gem": {
+          "emoji": "egemDEV:1062784474351403068"
         }
-      ]
-    }
+      }
+    ],
+    "inStickerName": [
+      {
+        "Live Albert Reaction": {
+          "message": "<@615822182454657025>"
+        }
+      }
+    ]
   }
-  
+}
