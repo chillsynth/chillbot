@@ -31,8 +31,8 @@ class Extras(commands.Cog):
                 "https://www.youtube.com/feeds/videos.xml?channel_id=UCjPLBJtP7zq16YVcT3_gmkg",  # POLYCHORA
                 "https://www.youtube.com/feeds/videos.xml?channel_id=UCzIGoCCmSvgJgaxFFOOBJdQ",  # Definition of Chill.
                 "https://www.youtube.com/feeds/videos.xml?channel_id=UCwoTj-pZgZZ8DInOXSSLMmA",  # Odysseus
-                "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew",  # DFTI
-                "https://www.youtube.com/feeds/videos.xml?channel_id=UCmJHkrvlDlFws5Rw1AYUWMQ"   # Hurleybird
+                "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew"   # DFTI
+                # "https://www.youtube.com/feeds/videos.xml?channel_id=UCmJHkrvlDlFws5Rw1AYUWMQ"   # Hurleybird
         ]
 
         for channel_url in channels:
