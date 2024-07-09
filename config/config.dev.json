@@ -23,6 +23,10 @@
     {
       "name": "DFTI",
       "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew"
+    },
+    {
+      "name": "npgy",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UC9Aieyr4JP5ckO6obqzeiWQ"
     }
   ],
   "reactions": {
