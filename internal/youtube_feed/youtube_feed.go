@@ -26,12 +26,6 @@ func (m *YoutubeFeedModule) Init(deps *module.CommonDeps) {
 	m.channels = map[string]string{}
 	m.fp = gofeed.NewParser()
 
-	m.Discord.AddHandler(func(s *discordgo.Session, msg *discordgo.MessageCreate) {
-		if msg.Content == "test" {
-			m.PostLatestVideos()
-		}
-	})
-
 	m.LoadLatestVideos()
 
 	m.pollingFrequency = "1m"
@@ -41,7 +35,6 @@ func (m *YoutubeFeedModule) Init(deps *module.CommonDeps) {
 	c.AddFunc("@every "+m.pollingFrequency, m.PostLatestVideos)
 
 	c.Start()
-
 }
 
 func (m *YoutubeFeedModule) LoadLatestVideos() {
