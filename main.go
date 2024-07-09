@@ -7,6 +7,7 @@ import (
 	"chillbot/internal/logging"
 	"chillbot/internal/module"
 	"chillbot/internal/reactions"
+	youtube "chillbot/internal/youtube_feed"
 	"log/slog"
 	"os"
 
@@ -19,6 +20,7 @@ import (
 var modules = []module.Module{
 	&reactions.ReactorModule{},
 	&greetings.GreetingsModule{},
+	&youtube.YoutubeFeedModule{},
 }
 
 func createDiscordSession() (*discordgo.Session, error) {

@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	GuildID           string    `json:"guild_id"`
-	LoungeChannelID   string    `json:"lounge_channel_id"`
-	FeedbackChannelID string    `json:"feedback_channel_id"`
-	OnlineRoleID      string    `json:"online_role_id"`
-	Reactions         Reactions `json:"reactions"`
+	GuildID           string           `json:"guild_id"`
+	LoungeChannelID   string           `json:"lounge_channel_id"`
+	FeedbackChannelID string           `json:"feedback_channel_id"`
+	YoutubeChannels   []YoutubeChannel `json:"youtube_channels"`
+	OnlineRoleID      string           `json:"online_role_id"`
+	Reactions         Reactions        `json:"reactions"`
 }
 
 type Reactions struct {
@@ -22,6 +23,11 @@ type Reactions struct {
 type Reaction struct {
 	Emoji   *string `json:"emoji"`
 	Message *string `json:"message"`
+}
+
+type YoutubeChannel struct {
+	Name string `json:"name"`
+	Feed string `json:"feed"`
 }
 
 func (c *Config) Load(l *logging.Logger) {

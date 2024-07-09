@@ -3,6 +3,36 @@
   "lounge_channel_id": "571704489413705764",
   "feedback_channel_id": "944046133343293480",
   "online_role_id": "744585751194238986",
+  "youtube_channels": [
+    {
+      "name": "Electronic Gems",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCPzWlhG7QM56Y8MYB3qMVnQ"
+    },
+    {
+      "name": "Polychora",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCjPLBJtP7zq16YVcT3_gmkg"
+    },
+    {
+      "name": "Definition of Chill",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCzIGoCCmSvgJgaxFFOOBJdQ"
+    },
+    {
+      "name": "Odysseus",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCwoTj-pZgZZ8DInOXSSLMmA"
+    },
+    {
+      "name": "DFTI",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew"
+    },
+    {
+      "name": "npgy",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UC9Aieyr4JP5ckO6obqzeiWQ"
+    },
+    {
+      "name": "Hurleybird",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmJHkrvlDlFws5Rw1AYUWMQ"
+    }
+  ],
   "reactions": {
     "inMessage": [
       {

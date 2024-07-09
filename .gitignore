@@ -29,3 +29,5 @@ go.work
 .env
 
 tmp/
+
+.DS_Store
