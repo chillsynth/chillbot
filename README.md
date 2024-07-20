@@ -32,7 +32,7 @@ Copy `.env.example` to `.env`
 Put your bot token in the `DISCORD_CLIENT_SECRET` variable  
 The `config.json` config is active while running locally
 
-Install taskfile with this command:  
+Install Task with this command:  
 `go install github.com/go-task/task/v3/cmd/task@latest`  
 
 Install required project dependencies:  
