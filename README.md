@@ -32,8 +32,14 @@ Copy `.env.example` to `.env`
 Put your bot token in the `DISCORD_CLIENT_SECRET` variable  
 The `config.json` config is active while running locally
 
-Make sure you have `make` installed  
-Run `make run/live`.  
+Install taskfile with this command:  
+`go install github.com/go-task/task/v3/cmd/task@latest`  
+
+Install required project dependencies:  
+`task init`
+
+Start the development server with  
+`task dev`  
 Now you have auto reloading when changing code files!
 
 ## Running in the dev environment
