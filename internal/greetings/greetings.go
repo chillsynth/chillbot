@@ -1,8 +1,8 @@
 package greetings
 
 import (
+	"chillbot/internal/bot"
 	"chillbot/internal/module"
-	"chillbot/internal/utils"
 	"fmt"
 	"slices"
 
@@ -14,28 +14,30 @@ type GreetingsModule struct {
 }
 
 func (m *GreetingsModule) Init(deps *module.CommonDeps) {
-	m.Discord = deps.Discord
+	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
 
-	m.Discord.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberUpdate) {
-		m.GreetVerifiedUser(g)
-	})
+	bot.AddHandler(m.Bot, m.GreetVerifiedUser)
 }
 
-func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
+func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) error {
 	if g.Member.User.Bot || g.BeforeUpdate == nil || g.GuildID != m.Config.GuildID {
-		return
+		return nil
 	}
 	if m.hasUserJustBeenVerified(g) {
-		err := m.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, m.Config.OnlineRoleID)
-		utils.HandleError(err)
+		err := m.Bot.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, m.Config.OnlineRoleID)
+		if err != nil {
+			return err
+		}
 
-		_, err = m.Discord.ChannelMessageSend(m.Config.LoungeChannelID,
+		_, err = m.Bot.Discord.ChannelMessageSend(m.Config.LoungeChannelID,
 			fmt.Sprintf("**Hello %s and welcome to ChillSynth!**", g.Mention()))
-		utils.HandleError(err)
+		if err != nil {
+			return err
+		}
 
-		_, err = m.Discord.ChannelMessageSendEmbed(m.Config.LoungeChannelID, &discordgo.MessageEmbed{
+		_, err = m.Bot.Discord.ChannelMessageSendEmbed(m.Config.LoungeChannelID, &discordgo.MessageEmbed{
 			Description: fmt.Sprintf(
 				"### <:Discord_Invite:1140057489941995650> Head over to <#%s> to grab your roles \n"+
 					"### <:Discord_Message_SpeakTTS:1140059207106826271> "+
@@ -47,8 +49,11 @@ func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) {
 				Text: "If you have any questions, feel free to @ one of our moderators!",
 			},
 		})
-		utils.HandleError(err)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (m *GreetingsModule) hasUserJustBeenVerified(g *discordgo.GuildMemberUpdate) bool {

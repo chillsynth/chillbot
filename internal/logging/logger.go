@@ -17,8 +17,8 @@ func (l *Logger) LogWarning(msg string, args ...any) {
 	l.Slog.Warn(msg, args...)
 }
 
-func (l *Logger) LogError(msg string, args ...any) {
-	l.Slog.Error(msg, args...)
+func (l *Logger) LogError(err error) {
+	l.Slog.Error("error", "err", err)
 }
 
 func (l *Logger) LogFatal(fmt string, args ...any) {

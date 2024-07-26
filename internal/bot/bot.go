@@ -1,7 +1,8 @@
 package bot
 
 import (
-	"chillbot/internal/module"
+	"chillbot/internal/config"
+	"chillbot/internal/logging"
 	"fmt"
 	"os"
 	"os/signal"
@@ -11,13 +12,15 @@ import (
 )
 
 type Bot struct {
-	module.CommonDeps
+	Discord *discordgo.Session
+	Logger  *logging.Logger
+	Config  *config.Config
 }
 
-func (b *Bot) Init(deps *module.CommonDeps) {
-	b.Discord = deps.Discord
-	b.Logger = deps.Logger
-	b.Config = deps.Config
+func (b *Bot) Init(d *discordgo.Session, l *logging.Logger, c *config.Config) {
+	b.Discord = d
+	b.Logger = l
+	b.Config = c
 }
 
 func (b *Bot) Run() {

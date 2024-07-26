@@ -47,20 +47,20 @@ func main() {
 		logger.LogFatal("error creating Discord session %s", err)
 	}
 
+	// Initialize Bot
+	bot := &bot.Bot{}
+	bot.Init(discord, logger, conf)
+
 	deps := &module.CommonDeps{
-		Discord: discord,
-		Logger:  logger,
-		Config:  conf,
+		Bot:    bot,
+		Logger: logger,
+		Config: conf,
 	}
 
 	// Initialize modules
 	for _, m := range modules {
 		m.Init(deps)
 	}
-
-	// Initialize Bot
-	bot := &bot.Bot{}
-	bot.Init(deps)
 
 	bot.Run()
 }
