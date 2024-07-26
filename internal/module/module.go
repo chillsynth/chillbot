@@ -7,8 +7,7 @@ import (
 )
 
 type CommonDeps struct {
-	Bot *bot.Bot
-
+	Bot    *bot.Bot
 	Logger *logging.Logger
 	Config *config.Config
 }
