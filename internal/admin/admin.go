@@ -3,6 +3,7 @@ package admin
 import (
 	"chillbot/internal/bot"
 	"chillbot/internal/module"
+	"errors"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -39,6 +40,9 @@ func (m *AdminModule) Ping(i *discordgo.InteractionCreate) error {
 
 func (m *AdminModule) DeleteCommand(msg *discordgo.MessageCreate) error {
 	var err error
+	if !m.Bot.DoesMemberHaveAnyRoles(msg.Member.Roles, []string{"Admin"}) {
+		return errors.New("Does not have permission to execute this")
+	}
 	if strings.HasPrefix(msg.Content, "!delcmd") {
 		msgArgs := strings.Split(msg.Content, " ")
 		if len(msgArgs) > 1 {
