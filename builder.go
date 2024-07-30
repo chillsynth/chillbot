@@ -71,6 +71,9 @@ func (b *Builder) BuildModules() {
 	}
 
 	for _, m := range modules {
-		m.Load(deps)
+		err := m.Load(deps)
+		if err != nil {
+			b.logger.LogFatal("Error loading module %s, error %s", m, err.Error())
+		}
 	}
 }

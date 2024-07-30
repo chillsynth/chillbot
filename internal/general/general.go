@@ -10,15 +10,21 @@ type GeneralModule struct {
 	module.CommonDeps
 }
 
-func (m *GeneralModule) Load(deps *module.CommonDeps) {
+func (m *GeneralModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
 
-	m.Bot.AddCommand(&discordgo.ApplicationCommand{
+	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "ping",
 		Description: "pings the bot",
 	}, m.Ping)
+
+	// err2 :=
+
+	// err = errors.Join(err, err2)
+
+	return err
 }
 
 func (m *GeneralModule) Ping(i *discordgo.InteractionCreate) error {

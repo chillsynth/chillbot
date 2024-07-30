@@ -19,7 +19,7 @@ type YoutubeFeedModule struct {
 	pollingFrequency string
 }
 
-func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) {
+func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
@@ -35,6 +35,8 @@ func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) {
 	c.AddFunc("@every "+m.pollingFrequency, utils.Job(m.PostLatestVideos, m.Logger))
 
 	c.Start()
+
+	return nil
 }
 
 func (m *YoutubeFeedModule) LoadLatestVideos() {

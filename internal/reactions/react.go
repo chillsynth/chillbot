@@ -13,12 +13,14 @@ type ReactorModule struct {
 	module.CommonDeps
 }
 
-func (m *ReactorModule) Load(deps *module.CommonDeps) {
+func (m *ReactorModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
 
 	bot.AddHandler(m.Bot, m.React)
+
+	return nil
 }
 
 func getReaction(r map[string]config.Reaction) (string, config.Reaction) {

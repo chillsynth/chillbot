@@ -13,5 +13,5 @@ type CommonDeps struct {
 }
 
 type Module interface {
-	Load(deps *CommonDeps)
+	Load(deps *CommonDeps) error
 }

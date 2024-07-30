@@ -12,10 +12,11 @@ import (
 )
 
 type Bot struct {
-	Discord  *discordgo.Session
-	Logger   *logging.Logger
-	Config   *config.Config
-	Commands []*discordgo.ApplicationCommand
+	Discord         *discordgo.Session
+	Logger          *logging.Logger
+	Config          *config.Config
+	Commands        map[string]BotCommand
+	CommandHandlers map[string]func(i *discordgo.InteractionCreate) error
 }
 
 func NewBot(s *discordgo.Session, l *logging.Logger, c *config.Config) *Bot {
@@ -38,6 +39,11 @@ func (b *Bot) Init() {
 	discord.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		logger.LogInfo(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 	})
+
+	b.Commands = make(map[string]BotCommand)
+	b.CommandHandlers = make(map[string]func(i *discordgo.InteractionCreate) error)
+
+	b.RegisterCommandHandler()
 }
 
 func (b *Bot) Run() {

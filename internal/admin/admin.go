@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"chillbot/internal/bot"
 	"chillbot/internal/module"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -10,15 +12,19 @@ type AdminModule struct {
 	module.CommonDeps
 }
 
-func (m *AdminModule) Load(deps *module.CommonDeps) {
+func (m *AdminModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
 
-	m.Bot.AddCommand(&discordgo.ApplicationCommand{
+	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "admin",
 		Description: "admin command",
 	}, m.Ping, "Admin")
+
+	bot.AddHandler(m.Bot, m.DeleteCommand)
+
+	return err
 }
 
 func (m *AdminModule) Ping(i *discordgo.InteractionCreate) error {
@@ -28,5 +34,16 @@ func (m *AdminModule) Ping(i *discordgo.InteractionCreate) error {
 			Content: "im an admin command!",
 		},
 	})
+	return err
+}
+
+func (m *AdminModule) DeleteCommand(msg *discordgo.MessageCreate) error {
+	var err error
+	if strings.HasPrefix(msg.Content, "!delcmd") {
+		msgArgs := strings.Split(msg.Content, " ")
+		if len(msgArgs) > 1 {
+			err = m.Bot.Discord.ApplicationCommandDelete(m.Bot.Discord.State.User.ID, "", m.Bot.Commands[msgArgs[1]].ID)
+		}
+	}
 	return err
 }

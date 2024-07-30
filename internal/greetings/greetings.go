@@ -13,12 +13,14 @@ type GreetingsModule struct {
 	module.CommonDeps
 }
 
-func (m *GreetingsModule) Load(deps *module.CommonDeps) {
+func (m *GreetingsModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
 
 	bot.AddHandler(m.Bot, m.GreetVerifiedUser)
+
+	return nil
 }
 
 func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) error {
