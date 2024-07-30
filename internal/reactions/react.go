@@ -13,7 +13,7 @@ type ReactorModule struct {
 	module.CommonDeps
 }
 
-func (m *ReactorModule) Init(deps *module.CommonDeps) {
+func (m *ReactorModule) Load(deps *module.CommonDeps) {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

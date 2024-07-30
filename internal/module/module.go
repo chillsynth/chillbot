@@ -13,5 +13,5 @@ type CommonDeps struct {
 }
 
 type Module interface {
-	Init(deps *CommonDeps)
+	Load(deps *CommonDeps)
 }

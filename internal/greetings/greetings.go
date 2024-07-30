@@ -13,7 +13,7 @@ type GreetingsModule struct {
 	module.CommonDeps
 }
 
-func (m *GreetingsModule) Init(deps *module.CommonDeps) {
+func (m *GreetingsModule) Load(deps *module.CommonDeps) {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

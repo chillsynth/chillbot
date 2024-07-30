@@ -18,13 +18,15 @@ type Bot struct {
 	Commands []*discordgo.ApplicationCommand
 }
 
-func (b *Bot) Init(d *discordgo.Session, l *logging.Logger, c *config.Config) {
-	b.Discord = d
-	b.Logger = l
-	b.Config = c
+func NewBot(s *discordgo.Session, l *logging.Logger, c *config.Config) *Bot {
+	return &Bot{
+		Discord: s,
+		Logger:  l,
+		Config:  c,
+	}
 }
 
-func (b *Bot) Run() {
+func (b *Bot) Init() {
 	discord, logger, _ := b.Discord, b.Logger, b.Config
 	discord.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentGuildMembers
 
@@ -36,33 +38,10 @@ func (b *Bot) Run() {
 	discord.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		logger.LogInfo(fmt.Sprintf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator))
 	})
+}
 
-	// Listen to new messages
-	discord.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID {
-			return
-		}
-
-		if m.Content == "ping" {
-			s.ChannelMessageSend(m.ChannelID, "Pong!")
-		}
-
-		if m.Content == "pong" {
-			s.ChannelMessageSend(m.ChannelID, "Ping!")
-		}
-	})
-
-	b.AddCommand("test", "test command", "test role", func(i *discordgo.InteractionCreate) error {
-		err := b.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "im a test bot",
-			},
-		})
-		return err
-	})
-
-	defer discord.Close()
+func (b *Bot) Run() {
+	defer b.Discord.Close()
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)

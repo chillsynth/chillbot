@@ -6,12 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func (b *Bot) AddCommand(commandName string, commandDescription string, requiredRoles string, handler func(i *discordgo.InteractionCreate) error) error {
-	cmd := &discordgo.ApplicationCommand{
-		Name:        commandName,
-		Description: commandDescription,
-	}
-
+func (b *Bot) AddCommand(cmd *discordgo.ApplicationCommand, handler func(i *discordgo.InteractionCreate) error, requiredRoles ...string) error {
 	b.Commands = append(b.Commands, cmd)
 
 	b.RegisterCommandHandler(handler, requiredRoles)
@@ -21,11 +16,11 @@ func (b *Bot) AddCommand(commandName string, commandDescription string, required
 	return err
 }
 
-func (b *Bot) RegisterCommandHandler(handler func(i *discordgo.InteractionCreate) error, requiredRoles string) func() {
+func (b *Bot) RegisterCommandHandler(handler func(i *discordgo.InteractionCreate) error, requiredRoles []string) func() {
 	return b.Discord.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		var err error
 
-		if slices.Contains(i.Member.Roles, b.Config.Roles[requiredRoles]) {
+		if b.DoesMemberHaveAnyRoles(i.Member.Roles, requiredRoles) {
 			err = handler(i)
 		} else {
 			err = b.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -40,5 +35,19 @@ func (b *Bot) RegisterCommandHandler(handler func(i *discordgo.InteractionCreate
 		if err != nil {
 			b.Logger.LogError(err)
 		}
+	})
+}
+
+func (b *Bot) DoesMemberHaveAnyRoles(memberRoles []string, checkRoles []string) bool {
+	if len(checkRoles) == 0 {
+		return true
+	}
+	return slices.ContainsFunc(memberRoles, func(e string) bool {
+		for _, role := range checkRoles {
+			if b.Config.Roles[role] == e {
+				return true
+			}
+		}
+		return false
 	})
 }

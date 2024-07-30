@@ -19,7 +19,7 @@ type YoutubeFeedModule struct {
 	pollingFrequency string
 }
 
-func (m *YoutubeFeedModule) Init(deps *module.CommonDeps) {
+func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
