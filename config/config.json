@@ -2,7 +2,11 @@
   "guild_id": "1015751167470473306",
   "lounge_channel_id": "571704489413705764",
   "feedback_channel_id": "944046133343293480",
-  "online_role_id": "744585751194238986",
+  "roles": 
+    {
+      "online_role": "744585751194238986",
+      "test role": "1267883656261927026"
+    },
   "youtube_channels": [
     {
       "name": "Electronic Gems",

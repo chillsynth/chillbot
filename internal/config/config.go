@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	GuildID           string           `json:"guild_id"`
-	LoungeChannelID   string           `json:"lounge_channel_id"`
-	FeedbackChannelID string           `json:"feedback_channel_id"`
-	YoutubeChannels   []YoutubeChannel `json:"youtube_channels"`
-	OnlineRoleID      string           `json:"online_role_id"`
-	Reactions         Reactions        `json:"reactions"`
+	GuildID           string            `json:"guild_id"`
+	LoungeChannelID   string            `json:"lounge_channel_id"`
+	FeedbackChannelID string            `json:"feedback_channel_id"`
+	YoutubeChannels   []YoutubeChannel  `json:"youtube_channels"`
+	Roles             map[string]string `json:"roles"`
+	Reactions         Reactions         `json:"reactions"`
 }
 
 type Reactions struct {
@@ -30,18 +30,16 @@ type YoutubeChannel struct {
 	Feed string `json:"feed"`
 }
 
-func (c *Config) Load(l *logging.Logger) {
+func (c *Config) Load(l *logging.Logger) error {
 	dir, _ := os.Getwd()
 
 	dat, err := os.ReadFile(dir + "/config/config.json")
 
 	if err != nil {
-		l.LogFatal("Cannot load config file %s", err.Error())
+		return err
 	}
 
 	err = json.Unmarshal(dat, c)
 
-	if err != nil {
-		l.LogFatal("Cannot load config file %s", err.Error())
-	}
+	return err
 }

@@ -26,7 +26,7 @@ func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) erro
 		return nil
 	}
 	if m.hasUserJustBeenVerified(g) {
-		err := m.Bot.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, m.Config.OnlineRoleID)
+		err := m.Bot.Discord.GuildMemberRoleAdd(g.Member.GuildID, g.Member.User.ID, m.Config.Roles["online_role"])
 		if err != nil {
 			return err
 		}
@@ -57,5 +57,5 @@ func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) erro
 }
 
 func (m *GreetingsModule) hasUserJustBeenVerified(g *discordgo.GuildMemberUpdate) bool {
-	return g.BeforeUpdate.Pending && !g.Pending && !slices.Contains(g.BeforeUpdate.Roles, m.Config.OnlineRoleID)
+	return g.BeforeUpdate.Pending && !g.Pending && !slices.Contains(g.BeforeUpdate.Roles, m.Config.Roles["online_role"])
 }

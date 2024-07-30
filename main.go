@@ -26,7 +26,6 @@ var modules = []module.Module{
 func createDiscordSession() (*discordgo.Session, error) {
 	token := os.Getenv("DISCORD_CLIENT_SECRET")
 
-	// New Discord session
 	discord, err := discordgo.New("Bot " + token)
 
 	return discord, err
@@ -40,7 +39,10 @@ func main() {
 	slog.SetDefault(logger.Slog)
 
 	conf := &config.Config{}
-	conf.Load(logger)
+	err := conf.Load(logger)
+	if err != nil {
+		logger.LogFatal("Cannot load config file %s", err.Error())
+	}
 
 	discord, err := createDiscordSession()
 	if err != nil {
