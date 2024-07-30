@@ -40,13 +40,17 @@ func NewBuilder(l *logging.Logger, c *config.Config) *Builder {
 
 func (b *Builder) Build() error {
 	err := b.BuildDiscordClient()
+	if err != nil {
+		return err
+	}
+
 	b.BuildBot()
 
 	b.Bot.Init()
 
 	b.BuildModules()
 
-	return err
+	return nil
 }
 
 func (b *Builder) BuildDiscordClient() error {

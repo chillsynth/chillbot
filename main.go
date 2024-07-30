@@ -5,17 +5,7 @@ import (
 	"chillbot/internal/logging"
 	"log/slog"
 	"os"
-
-	"github.com/bwmarrin/discordgo"
 )
-
-func createDiscordSession() (*discordgo.Session, error) {
-	token := os.Getenv("DISCORD_CLIENT_SECRET")
-
-	discord, err := discordgo.New("Bot " + token)
-
-	return discord, err
-}
 
 func main() {
 	logger := &logging.Logger{
