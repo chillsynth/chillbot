@@ -31,3 +31,4 @@ go.work
 tmp/
 
 .DS_Store
+/.idea

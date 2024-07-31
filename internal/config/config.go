@@ -10,6 +10,7 @@ type Config struct {
 	GuildID           string            `json:"guild_id"`
 	LoungeChannelID   string            `json:"lounge_channel_id"`
 	FeedbackChannelID string            `json:"feedback_channel_id"`
+	DemosChannelID    string            `json:"demos_channel_id"`
 	YoutubeChannels   []YoutubeChannel  `json:"youtube_channels"`
 	Roles             map[string]string `json:"roles"`
 	Reactions         Reactions         `json:"reactions"`
