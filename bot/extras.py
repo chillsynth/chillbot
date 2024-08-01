@@ -1,7 +1,5 @@
-import re
 import os
 import logging
-import motor.motor_asyncio
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands  # - USE FOR MANUAL
@@ -12,10 +10,6 @@ from time import mktime
 class Extras(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        # DB Setup
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
-        self.db = self.client["_server"]
 
         self.logger = logging.getLogger('discord')
         self.logger.setLevel(logging.INFO)
@@ -107,32 +101,6 @@ class Extras(commands.Cog):
         if "resonance" in message.content.lower():
             self.logger.info(f"Reacted 'resonance' to message: {message.jump_url}")
             await message.add_reaction(os.getenv("DEV_EMOJI_RESONANCE"))
-
-            # Retrieve leaderboard DB
-            current_stats = None
-            async for result in self.db.stats.find():
-                current_stats = result
-
-            await self.db.members.update_one(
-                {"discord_user_ID": message.author.id},
-                {"$inc": {"server_resonance_count": 1}}
-            )
-
-            await self.db.stats.update_one(
-                {"global_resonance_count": current_stats["global_resonance_count"]},
-                {"$inc": {"global_resonance_count": 1}}
-            )
-
-            current_top_5 = self.db.members.find().sort("server_resonance_count", -1).limit(5)
-            list_cur = await current_top_5.to_list(length=5)
-            resonance_leaderboard = []
-            for i in range(0, 5):
-                resonance_leaderboard.append([list_cur[i]['discord_user_ID'], list_cur[i]['server_resonance_count']])
-
-            await self.db.stats.update_one(
-                {},
-                {"$set": {"leaderboard": resonance_leaderboard}}
-            )
 
         if "electronic gem" in message.content.lower():
             self.logger.info(f"Reacted 'egem' to message: {message.jump_url}")

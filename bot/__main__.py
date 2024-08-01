@@ -2,7 +2,6 @@ import logging
 import logging.handlers
 import asyncio
 import os
-import motor.motor_asyncio
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -61,18 +60,6 @@ async def main():
 
     async def return_logger():
         return logger
-    # DB Setup
-    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DEV_MONGO_URI"))
-    db = client.test
-
-    # Send a ping to confirm a successful connection
-    try:
-        client.admin.command('ping')
-        logger.info(f"Connected to MongoDB!")
-        # Show connection to DB
-        logger.debug(db)
-    except Exception as e:
-        logger.error(e)
 
     async with ClientSession() as our_client:
         logger.info(f"<Starting>")  # Startup has begun

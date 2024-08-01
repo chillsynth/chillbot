@@ -5,6 +5,7 @@ services:
     container_name: chillbot
     build: ./
     env_file: .env
+    restart: unless-stopped
     volumes:
       - ./logs:/chillbot/logs
     # command: echo $TZ > /etc/timezone
