@@ -43,7 +43,7 @@ class ChillBot(commands.Bot):
 async def main():
     # Logging
     logger = logging.getLogger('discord')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)  # TODO: SET TO INFO ON RELEASE
 
     if not os.path.exists("logs"):
         os.makedirs("logs")
@@ -55,7 +55,7 @@ async def main():
         backupCount=5,  # Rotate through 5 files
     )
     dt_fmt = '%d-%m-%Y %H:%M:%S'
-    formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+    formatter = logging.Formatter('[{asctime}] [{levelname:<5}] {name}: {message}', dt_fmt, style='{')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
