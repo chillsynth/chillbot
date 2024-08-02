@@ -1,4 +1,5 @@
 {
+  "environment": "local",
   "guild_id": "1015751167470473306",
   "lounge_channel_id": "571704489413705764",
   "feedback_channel_id": "944046133343293480",

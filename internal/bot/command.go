@@ -42,9 +42,7 @@ func (b *Bot) RegisterCommandHandler() {
 				})
 			}
 
-			if err != nil {
-				b.Logger.LogError(err)
-			}
+			b.HandleError(err)
 		}
 	})
 }

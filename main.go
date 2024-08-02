@@ -3,13 +3,25 @@ package main
 import (
 	"chillbot/internal/config"
 	"chillbot/internal/logging"
+	"log"
 	"log/slog"
 	"os"
 )
 
 func main() {
+	conf := &config.Config{}
+	err := conf.Load()
+	if err != nil {
+		log.Fatalf("Cannot load config file %s", err.Error())
+	}
+
+	logLevel := slog.LevelInfo
+	if conf.Environment == "local" {
+		logLevel = slog.LevelDebug
+	}
+
 	opts := &slog.HandlerOptions{
-		Level: slog.LevelDebug, // Can be changed from LevelDebug to LevelInfo between LIVE and DEV states
+		Level: logLevel,
 	}
 
 	logger := &logging.Logger{
@@ -18,17 +30,11 @@ func main() {
 
 	slog.SetDefault(logger.Slog)
 
-	conf := &config.Config{}
-	err := conf.Load(logger)
-	if err != nil {
-		logger.LogFatal("Cannot load config file %s", err.Error())
-	}
-
 	b := NewBuilder(logger, conf)
 
 	err = b.Build()
 	if err != nil {
-		logger.LogFatal("Error building the bot %s", err.Error())
+		log.Fatalf("Error building the bot %s", err.Error())
 	}
 
 	b.Bot.Run()

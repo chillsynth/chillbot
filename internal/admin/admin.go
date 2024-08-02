@@ -2,17 +2,20 @@ package admin
 
 import (
 	"chillbot/internal/module"
+
 	"github.com/bwmarrin/discordgo"
 )
 
 type AdminModule struct {
 	module.CommonDeps
+	name string
 }
 
 func (m *AdminModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
+	m.name = "AdminModule"
 
 	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "admin",

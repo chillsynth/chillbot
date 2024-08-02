@@ -3,6 +3,7 @@ package automoderator
 import (
 	"chillbot/internal/bot"
 	"chillbot/internal/module"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,12 +12,14 @@ import (
 
 type AutoModule struct {
 	module.CommonDeps
+	name string
 }
 
 func (m *AutoModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
+	m.name = "AutoModule"
 
 	bot.AddHandler(m.Bot, m.MessageCheck)
 
@@ -46,16 +49,16 @@ func (m *AutoModule) DemosSendTempMessage(s *discordgo.Session, msg *discordgo.M
 
 func (m *AutoModule) MessageCheck(msg *discordgo.MessageCreate) error {
 	var err error
-	if msg.Author.Bot == true { // Ignore message if sent by the bot
-		m.Logger.LogDebug("automod.go: ignoring bot-sent message in #demos")
-		return nil
+	if msg.Author.Bot { // Ignore message if sent by the bot
+		return fmt.Errorf("debug %s: ignoring bot-sent message in #demos", m.name)
 	} else {
 		if msg.ChannelID == m.Config.DemosChannelID { // If message sent in #demos, allow ONLY attachments
 			if msg.Content != "" {
-				m.Logger.LogInfo(fmt.Sprintf("automod.go: UserID:%s(%s) tried to send text in #demos.",
-					msg.Author.ID, msg.Author.GlobalName))
+				m.Logger.LogInfo(fmt.Sprintf("%s: UserID:%s(%s) tried to send text in #demos.",
+					m.name, msg.Author.ID, msg.Author.GlobalName))
 				err = m.Bot.Discord.ChannelMessageDelete(msg.ChannelID, msg.ID)
-				err = m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
+				err2 := m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
+				err = errors.Join(err, err2)
 			}
 		}
 	}

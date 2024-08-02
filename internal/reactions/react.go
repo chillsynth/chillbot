@@ -11,12 +11,14 @@ import (
 
 type ReactorModule struct {
 	module.CommonDeps
+	name string
 }
 
 func (m *ReactorModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
+	m.name = "ReactorModule"
 
 	bot.AddHandler(m.Bot, m.React)
 

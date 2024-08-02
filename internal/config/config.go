@@ -1,12 +1,12 @@
 package config
 
 import (
-	"chillbot/internal/logging"
 	"encoding/json"
 	"os"
 )
 
 type Config struct {
+	Environment       string            `json:"environment"`
 	GuildID           string            `json:"guild_id"`
 	LoungeChannelID   string            `json:"lounge_channel_id"`
 	FeedbackChannelID string            `json:"feedback_channel_id"`
@@ -31,7 +31,7 @@ type YoutubeChannel struct {
 	Feed string `json:"feed"`
 }
 
-func (c *Config) Load(l *logging.Logger) error {
+func (c *Config) Load() error {
 	dir, _ := os.Getwd()
 
 	dat, err := os.ReadFile(dir + "/config/config.json") //TODO: DO NOT PUSH WITHOUT CHANGING BACK TO CONFIG.JSON!!!

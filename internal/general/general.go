@@ -9,12 +9,14 @@ import (
 
 type GeneralModule struct {
 	module.CommonDeps
+	name string
 }
 
 func (m *GeneralModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
+	m.name = "GeneralModule"
 
 	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "ping",

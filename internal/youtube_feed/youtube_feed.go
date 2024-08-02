@@ -14,6 +14,7 @@ import (
 
 type YoutubeFeedModule struct {
 	module.CommonDeps
+	name             string
 	fp               *gofeed.Parser
 	channels         map[string]string
 	pollingFrequency string
@@ -23,6 +24,7 @@ func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config
+	m.name = "YoutubeFeedModule"
 	m.channels = map[string]string{}
 	m.fp = gofeed.NewParser()
 
