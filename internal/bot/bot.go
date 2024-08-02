@@ -54,10 +54,13 @@ func (b *Bot) Run() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	// for _, v := range commands {
-	// 	err := discord.ApplicationCommandDelete(discord.State.User.ID, "", v.ID)
-	// 	if err != nil {
-	// 		logger.LogFatal("Cannot delete '%v' command: %v", v.Name, err)
-	// 	}
-	// }
+	// delete registered commands when not in prod
+	if b.Config.Environment != "prod" {
+		for _, v := range b.Commands {
+			err := b.Discord.ApplicationCommandDelete(b.Discord.State.User.ID, "", v.ID)
+			if err != nil {
+				b.Logger.LogFatal("Cannot delete '%v' command: %v", v.Name, err)
+			}
+		}
+	}
 }
