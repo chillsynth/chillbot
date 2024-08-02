@@ -34,7 +34,7 @@ type YoutubeChannel struct {
 func (c *Config) Load(l *logging.Logger) error {
 	dir, _ := os.Getwd()
 
-	dat, err := os.ReadFile(dir + "/config/config.json")
+	dat, err := os.ReadFile(dir + "/config/config.json") //TODO: DO NOT PUSH WITHOUT CHANGING BACK TO CONFIG.JSON!!!
 
 	if err != nil {
 		return err

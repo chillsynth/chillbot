@@ -8,8 +8,12 @@ import (
 )
 
 func main() {
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelDebug, // Can be changed from LevelDebug to LevelInfo between LIVE and DEV states
+	}
+
 	logger := &logging.Logger{
-		Slog: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		Slog: slog.New(slog.NewJSONHandler(os.Stdout, opts)),
 	}
 
 	slog.SetDefault(logger.Slog)

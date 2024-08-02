@@ -2,6 +2,7 @@ package general
 
 import (
 	"chillbot/internal/module"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -31,7 +32,7 @@ func (m *GeneralModule) Ping(i *discordgo.InteractionCreate) error {
 	err := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Pong!",
+			Content: fmt.Sprintf("Pong! Latency is: %v", m.Bot.Discord.HeartbeatLatency()),
 		},
 	})
 	return err

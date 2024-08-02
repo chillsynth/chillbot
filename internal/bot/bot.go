@@ -29,7 +29,8 @@ func NewBot(s *discordgo.Session, l *logging.Logger, c *config.Config) *Bot {
 
 func (b *Bot) Init() {
 	discord, logger, _ := b.Discord, b.Logger, b.Config
-	discord.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentGuildMembers
+	discord.Identify.Intents = discordgo.IntentsAll
+	// discord.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentGuildMembers
 
 	err := discord.Open()
 	if err != nil {

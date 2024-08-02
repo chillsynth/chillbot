@@ -1,11 +1,7 @@
 package admin
 
 import (
-	"chillbot/internal/bot"
 	"chillbot/internal/module"
-	"errors"
-	"strings"
-
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -21,14 +17,14 @@ func (m *AdminModule) Load(deps *module.CommonDeps) error {
 	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "admin",
 		Description: "admin command",
-	}, m.Ping, "Admin")
+	}, m.AdminTest, "Admin")
 
-	bot.AddHandler(m.Bot, m.DeleteCommand)
+	// bot.AddHandler(m.Bot, m.DeleteCommand)
 
 	return err
 }
 
-func (m *AdminModule) Ping(i *discordgo.InteractionCreate) error {
+func (m *AdminModule) AdminTest(i *discordgo.InteractionCreate) error {
 	err := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -38,6 +34,7 @@ func (m *AdminModule) Ping(i *discordgo.InteractionCreate) error {
 	return err
 }
 
+/*
 func (m *AdminModule) DeleteCommand(msg *discordgo.MessageCreate) error {
 	var err error
 	if !m.Bot.DoesMemberHaveAnyRoles(msg.Member.Roles, []string{"Admin"}) {
@@ -51,3 +48,4 @@ func (m *AdminModule) DeleteCommand(msg *discordgo.MessageCreate) error {
 	}
 	return err
 }
+*/

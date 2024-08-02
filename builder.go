@@ -2,6 +2,7 @@ package main
 
 import (
 	"chillbot/internal/admin"
+	"chillbot/internal/automod"
 	"chillbot/internal/bot"
 	"chillbot/internal/config"
 	"chillbot/internal/general"
@@ -9,7 +10,7 @@ import (
 	"chillbot/internal/logging"
 	"chillbot/internal/module"
 	"chillbot/internal/reactions"
-	youtube "chillbot/internal/youtube_feed"
+	"chillbot/internal/youtube_feed"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
@@ -21,6 +22,7 @@ var modules = []module.Module{
 	&youtube.YoutubeFeedModule{},
 	&general.GeneralModule{},
 	&admin.AdminModule{},
+	&automoderator.AutoModule{},
 }
 
 type Builder struct {

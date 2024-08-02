@@ -9,6 +9,10 @@ type Logger struct {
 	Slog *slog.Logger
 }
 
+func (l *Logger) LogDebug(msg string, args ...any) {
+	l.Slog.Debug(msg, args...)
+}
+
 func (l *Logger) LogInfo(msg string, args ...any) {
 	l.Slog.Info(msg, args...)
 }
