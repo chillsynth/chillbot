@@ -1,18 +1,18 @@
 package general
 
 import (
-	"chillbot/internal/module"
+	"chillbot/internal/bot"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 type GeneralModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name string
 }
 
-func (m *GeneralModule) Load(deps *module.CommonDeps) error {
+func (m *GeneralModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

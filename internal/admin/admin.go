@@ -1,17 +1,17 @@
 package admin
 
 import (
-	"chillbot/internal/module"
+	"chillbot/internal/bot"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 type AdminModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name string
 }
 
-func (m *AdminModule) Load(deps *module.CommonDeps) error {
+func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

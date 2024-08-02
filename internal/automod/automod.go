@@ -2,7 +2,6 @@ package automoderator
 
 import (
 	"chillbot/internal/bot"
-	"chillbot/internal/module"
 	"errors"
 	"fmt"
 	"time"
@@ -11,11 +10,11 @@ import (
 )
 
 type AutoModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name string
 }
 
-func (m *AutoModule) Load(deps *module.CommonDeps) error {
+func (m *AutoModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

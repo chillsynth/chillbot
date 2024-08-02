@@ -2,21 +2,20 @@ package main
 
 import (
 	"chillbot/internal/admin"
-	"chillbot/internal/automod"
+	automoderator "chillbot/internal/automod"
 	"chillbot/internal/bot"
 	"chillbot/internal/config"
 	"chillbot/internal/general"
 	"chillbot/internal/greetings"
 	"chillbot/internal/logging"
-	"chillbot/internal/module"
 	"chillbot/internal/reactions"
-	"chillbot/internal/youtube_feed"
+	youtube "chillbot/internal/youtube_feed"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-var modules = []module.Module{
+var modules = []bot.Module{
 	&reactions.ReactorModule{},
 	&greetings.GreetingsModule{},
 	&youtube.YoutubeFeedModule{},
@@ -70,7 +69,7 @@ func (b *Builder) BuildBot() {
 }
 
 func (b *Builder) BuildModules() {
-	deps := &module.CommonDeps{
+	deps := &bot.CommonDeps{
 		Bot:    b.Bot,
 		Logger: b.logger,
 		Config: b.config,

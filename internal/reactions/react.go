@@ -3,18 +3,17 @@ package reactions
 import (
 	"chillbot/internal/bot"
 	"chillbot/internal/config"
-	"chillbot/internal/module"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 type ReactorModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name string
 }
 
-func (m *ReactorModule) Load(deps *module.CommonDeps) error {
+func (m *ReactorModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

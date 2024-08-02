@@ -1,7 +1,7 @@
 package youtube
 
 import (
-	"chillbot/internal/module"
+	"chillbot/internal/bot"
 	"chillbot/internal/utils"
 	"fmt"
 	"os"
@@ -13,14 +13,14 @@ import (
 )
 
 type YoutubeFeedModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name             string
 	fp               *gofeed.Parser
 	channels         map[string]string
 	pollingFrequency string
 }
 
-func (m *YoutubeFeedModule) Load(deps *module.CommonDeps) error {
+func (m *YoutubeFeedModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

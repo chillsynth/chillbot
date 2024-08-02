@@ -2,7 +2,6 @@ package greetings
 
 import (
 	"chillbot/internal/bot"
-	"chillbot/internal/module"
 	"fmt"
 	"slices"
 
@@ -10,11 +9,11 @@ import (
 )
 
 type GreetingsModule struct {
-	module.CommonDeps
+	bot.CommonDeps
 	name string
 }
 
-func (m *GreetingsModule) Load(deps *module.CommonDeps) error {
+func (m *GreetingsModule) Load(deps *bot.CommonDeps) error {
 	m.Bot = deps.Bot
 	m.Logger = deps.Logger
 	m.Config = deps.Config

@@ -1,13 +1,12 @@
-package module
+package bot
 
 import (
-	"chillbot/internal/bot"
 	"chillbot/internal/config"
 	"chillbot/internal/logging"
 )
 
 type CommonDeps struct {
-	Bot    *bot.Bot
+	Bot    *Bot
 	Logger *logging.Logger
 	Config *config.Config
 }
