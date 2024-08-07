@@ -3,6 +3,7 @@ package general
 import (
 	"chillbot/internal/bot"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -27,6 +28,8 @@ func (m *GeneralModule) Load(deps *bot.CommonDeps) error {
 
 	// err = errors.Join(err, err2)
 
+	bot.AddHandler(m.Bot, m.TestMessage)
+
 	return err
 }
 
@@ -44,7 +47,11 @@ func (m *GeneralModule) TestMessage(msg *discordgo.MessageCreate) error {
 	if msg.Author.Bot {
 		return fmt.Errorf("debug %s: ignoring bot-sent message in #demos", m.name)
 	}
-	_, err := m.Bot.Discord.ChannelMessageSend(msg.ChannelID, "test message!")
 
-	return err
+	if strings.HasPrefix(msg.Content, "!test") {
+		_, err := m.Bot.Discord.ChannelMessageSend(msg.ChannelID, "test message!")
+		return err
+	}
+
+	return nil
 }
