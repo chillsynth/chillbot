@@ -5,6 +5,7 @@ import (
 	automoderator "chillbot/internal/automod"
 	"chillbot/internal/bot"
 	"chillbot/internal/config"
+	"chillbot/internal/events"
 	"chillbot/internal/general"
 	"chillbot/internal/greetings"
 	"chillbot/internal/logging"
@@ -22,6 +23,7 @@ var modules = []bot.Module{
 	&general.GeneralModule{},
 	&admin.AdminModule{},
 	&automoderator.AutoModule{},
+	&events.EventsModule{},
 }
 
 type Builder struct {
@@ -78,7 +80,7 @@ func (b *Builder) BuildModules() {
 	for _, m := range modules {
 		err := m.Load(deps)
 		if err != nil {
-			b.logger.LogFatal("Error loading module %s, error %s", m, err.Error())
+			b.logger.LogFatal("Error loading module %s, error %s", m.GetName(), err.Error())
 		}
 	}
 }

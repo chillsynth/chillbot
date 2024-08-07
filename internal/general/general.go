@@ -33,6 +33,10 @@ func (m *GeneralModule) Load(deps *bot.CommonDeps) error {
 	return err
 }
 
+func (m *GeneralModule) GetName() string {
+	return m.name
+}
+
 func (m *GeneralModule) Ping(i *discordgo.InteractionCreate) error {
 	err := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

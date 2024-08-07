@@ -13,4 +13,5 @@ type CommonDeps struct {
 
 type Module interface {
 	Load(deps *CommonDeps) error
+	GetName() string
 }

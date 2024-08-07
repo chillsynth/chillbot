@@ -48,6 +48,10 @@ func (m *YoutubeFeedModule) Load(deps *bot.CommonDeps) error {
 	return nil
 }
 
+func (m *YoutubeFeedModule) GetName() string {
+	return m.name
+}
+
 func (m *YoutubeFeedModule) LoadLatestVideos() {
 	for _, channel := range m.Config.YoutubeChannels {
 		feed, err := m.fp.ParseURL(channel.Feed)

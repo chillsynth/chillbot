@@ -7,14 +7,18 @@ import (
 )
 
 type Config struct {
-	Environment       string            `json:"environment"`
-	GuildID           string            `json:"guild_id"`
-	LoungeChannelID   string            `json:"lounge_channel_id"`
-	FeedbackChannelID string            `json:"feedback_channel_id"`
-	DemosChannelID    string            `json:"demos_channel_id"`
-	YoutubeChannels   []YoutubeChannel  `json:"youtube_channels"`
-	Roles             map[string]string `json:"roles"`
-	Reactions         Reactions         `json:"reactions"`
+	Environment          string            `json:"environment"`
+	GuildID              string            `json:"guild_id"`
+	LoungeChannelID      string            `json:"lounge_channel_id"`
+	FeedbackChannelID    string            `json:"feedback_channel_id"`
+	DemosChannelID       string            `json:"demos_channel_id"`
+	EventStageChannelId  string            `json:"event_stage_channel_id"`
+	EventStreamChannelId string            `json:"event_stream_channel_id"`
+	EventChatChannelId   string            `json:"event_chat_channel_id"`
+	HangoutRoomId        string            `json:"hangout_room_id"`
+	YoutubeChannels      []YoutubeChannel  `json:"youtube_channels"`
+	Roles                map[string]string `json:"roles"`
+	Reactions            Reactions         `json:"reactions"`
 }
 
 type Reactions struct {

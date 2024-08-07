@@ -24,6 +24,10 @@ func (m *GreetingsModule) Load(deps *bot.CommonDeps) error {
 	return nil
 }
 
+func (m *GreetingsModule) GetName() string {
+	return m.name
+}
+
 func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) error {
 	if g.Member.User.Bot || g.BeforeUpdate == nil || g.GuildID != m.Config.GuildID {
 		return nil

@@ -27,6 +27,10 @@ func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 	return err
 }
 
+func (m *AdminModule) GetName() string {
+	return m.name
+}
+
 func (m *AdminModule) AdminTest(i *discordgo.InteractionCreate) error {
 	err := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

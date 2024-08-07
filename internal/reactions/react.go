@@ -24,6 +24,10 @@ func (m *ReactorModule) Load(deps *bot.CommonDeps) error {
 	return nil
 }
 
+func (m *ReactorModule) GetName() string {
+	return m.name
+}
+
 func getReaction(r map[string]config.Reaction) (string, config.Reaction) {
 	var word string
 	var reaction config.Reaction

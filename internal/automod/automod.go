@@ -25,6 +25,10 @@ func (m *AutoModule) Load(deps *bot.CommonDeps) error {
 	return nil
 }
 
+func (m *AutoModule) GetName() string {
+	return m.name
+}
+
 func (m *AutoModule) DemosSendTempMessage(s *discordgo.Session, msg *discordgo.Message, channelID string, userID string, duration time.Duration) error {
 	// Send the automod message first
 	var err error
