@@ -4,6 +4,10 @@
   "lounge_channel_id": "1015751168409997395",
   "feedback_channel_id": "1015751168552620096",
   "demos_channel_id": "1015751168552620097",
+  "event_stage_channel_id": "1020414105519149118",
+  "event_stream_channel_id": "1015751168409997393",
+  "event_chat_channel_id": "1015751168242221064",
+  "hangout_room_id": "1015751168867180608",
   "roles": 
     {
       "online_role": "1015751167470473311",
