@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -34,7 +35,9 @@ type YoutubeChannel struct {
 func (c *Config) Load() error {
 	dir, _ := os.Getwd()
 
-	dat, err := os.ReadFile(dir + "/config/config.json") //TODO: DO NOT PUSH WITHOUT CHANGING BACK TO CONFIG.JSON!!!
+	currentEnv := os.Getenv("ENV")
+
+	dat, err := os.ReadFile(dir + fmt.Sprintf("/config/config.%s.json", currentEnv)) //TODO: DO NOT PUSH WITHOUT CHANGING BACK TO CONFIG.JSON!!!
 
 	if err != nil {
 		return err

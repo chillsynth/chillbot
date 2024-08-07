@@ -39,3 +39,12 @@ func (m *GeneralModule) Ping(i *discordgo.InteractionCreate) error {
 	})
 	return err
 }
+
+func (m *GeneralModule) TestMessage(msg *discordgo.MessageCreate) error {
+	if msg.Author.Bot {
+		return fmt.Errorf("debug %s: ignoring bot-sent message in #demos", m.name)
+	}
+	_, err := m.Bot.Discord.ChannelMessageSend(msg.ChannelID, "test message!")
+
+	return err
+}

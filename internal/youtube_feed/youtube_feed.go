@@ -5,6 +5,7 @@ import (
 	"chillbot/internal/utils"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -18,6 +19,8 @@ type YoutubeFeedModule struct {
 	fp               *gofeed.Parser
 	channels         map[string]string
 	pollingFrequency string
+	webhookId        string
+	webhookToken     string
 }
 
 func (m *YoutubeFeedModule) Load(deps *bot.CommonDeps) error {
@@ -27,6 +30,10 @@ func (m *YoutubeFeedModule) Load(deps *bot.CommonDeps) error {
 	m.name = "YoutubeFeedModule"
 	m.channels = map[string]string{}
 	m.fp = gofeed.NewParser()
+
+	webhookUrl := strings.Split(os.Getenv("YOUTUBE_WEBHOOK"), "/")
+	m.webhookId = webhookUrl[len(webhookUrl)-2]
+	m.webhookToken = webhookUrl[len(webhookUrl)-1]
 
 	m.LoadLatestVideos()
 
@@ -66,7 +73,7 @@ func (m *YoutubeFeedModule) PostLatestVideos() error {
 		if feed.Items[0].Link != lastVideoLink {
 			m.channels[channel] = feed.Items[0].Link
 
-			_, err := m.Bot.Discord.WebhookExecute(os.Getenv("YOUTUBE_WEBHOOK_ID"), os.Getenv("YOUTUBE_WEBHOOK_TOKEN"), false, &discordgo.WebhookParams{
+			_, err := m.Bot.Discord.WebhookExecute(m.webhookId, m.webhookToken, false, &discordgo.WebhookParams{
 				Content: fmt.Sprintf("%s: %s", feed.Items[0].Title, feed.Items[0].Link),
 			})
 

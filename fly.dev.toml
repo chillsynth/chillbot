@@ -1,0 +1,24 @@
+# fly.toml app configuration file generated for chillbot-dev on 2024-08-06T20:51:57-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'chillbot-dev'
+primary_region = 'iad'
+
+[env]
+  ENV = "dev"
+
+[build]
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  auto_start_machines = true
+  auto_stop_machines = false  # prevent automatic suspension
+  min_machines_running = 1  # keep a machine running at all times
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
