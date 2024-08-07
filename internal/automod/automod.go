@@ -62,6 +62,12 @@ func (m *AutoModule) MessageCheck(msg *discordgo.MessageCreate) error {
 				err = m.Bot.Discord.ChannelMessageDelete(msg.ChannelID, msg.ID)
 				err2 := m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
 				err = errors.Join(err, err2)
+			} else if len(msg.StickerItems) != 0 {
+				m.Logger.LogInfo(fmt.Sprintf("%s: UserID:%s(%s) tried to send sticker in #demos.",
+					m.name, msg.Author.ID, msg.Author.GlobalName))
+				err = m.Bot.Discord.ChannelMessageDelete(msg.ChannelID, msg.ID)
+				err2 := m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
+				err = errors.Join(err, err2)
 			}
 		}
 	}
