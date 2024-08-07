@@ -3,7 +3,6 @@
 ##### Last updated: 02-08-2024 @ 00:59
 
 ### Legacy chillbot.v3 code left to replace:
-> - Automod - #demos sticker detection
 > - Automod - #feedback channel rule enforcer [MAYBE]
 > - Admin - Invite Creation
 > - Admin - NOIMG command for moderation
@@ -16,3 +15,7 @@
 > - /links - user submitted modal (similar to /socials) ==OR== /socials combine???
 > - /unlock and /lock - manual media channel lock/unlock
 > - - Auto-lock \#showcase-submissions media channel until Sun 23:59 UTC, then unlock 
+
+### BUGS TO SQUISH
+> - Automod - #demos Albert sticker react pings but deletes sticker
+> - - Ideal outcome: **DO NOT** react in #demos and delete sticker as normal 
