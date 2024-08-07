@@ -1,0 +1,11 @@
+version: '3'
+
+dotenv: ['.env', '{{.ENV}}/.env.', '{{.HOME}}/.env']
+
+tasks:
+  init:
+    cmds:
+      - go install github.com/air-verse/air@v1.52.3
+  dev:
+    cmds:
+      - air -c air.toml

@@ -1,0 +1,59 @@
+{
+  "environment": "dev",
+  "guild_id": "1015751167470473306",
+  "lounge_channel_id": "1015751168409997395",
+  "feedback_channel_id": "1015751168552620096",
+  "demos_channel_id": "1015751168552620097",
+  "event_stage_channel_id": "1020414105519149118",
+  "event_stream_channel_id": "1015751168409997393",
+  "event_chat_channel_id": "1015751168242221064",
+  "hangout_room_id": "1015751168867180608",
+  "roles": 
+    {
+      "online_role": "1015751167470473311",
+      "Admin": "1015751167529201691"
+    },
+  "youtube_channels": [
+    {
+      "name": "Electronic Gems",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCPzWlhG7QM56Y8MYB3qMVnQ"
+    },
+    {
+      "name": "Polychora",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCjPLBJtP7zq16YVcT3_gmkg"
+    },
+    {
+      "name": "Definition of Chill",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCzIGoCCmSvgJgaxFFOOBJdQ"
+    },
+    {
+      "name": "Odysseus",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCwoTj-pZgZZ8DInOXSSLMmA"
+    },
+    {
+      "name": "DFTI",
+      "feed": "https://www.youtube.com/feeds/videos.xml?channel_id=UCHSv5KYYBSlOS340sdHK2ew"
+    }
+  ],
+  "reactions": {
+    "inMessage": [
+      {
+        "resonance": {
+          "emoji": "resonanceDEV:1020142646787837992"
+        }
+      },
+      {
+        "electronic gem": {
+          "emoji": "egemDEV:1062784474351403068"
+        }
+      }
+    ],
+    "inStickerName": [
+      {
+        "Live Albert Reaction": {
+          "message": "<@615822182454657025>"
+        }
+      }
+    ]
+  }
+}
