@@ -1,7 +1,0 @@
-*.env*
-/venv/
-.idea/
-/workflow
-/.directory
-/logs/
-/bot/logs/
