@@ -45,7 +45,7 @@ func (m *EventsModule) Load(deps *bot.CommonDeps) error {
 				Description: "Whether to enable or disable",
 			},
 		},
-	}, m.Event)
+	}, m.Event, "EventHost")
 
 	// err = errors.Join(err, err2)
 
