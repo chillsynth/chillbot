@@ -1,13 +1,17 @@
 {
   "environment": "prod",
-  "guild_id": "1015751167470473306",
-  "lounge_channel_id": "1015751168409997395",
-  "feedback_channel_id": "1015751168552620096",
-  "demos_channel_id": "1015751168552620097",
+  "guild_id": "488405912659427358",
+  "lounge_channel_id": "488405912659427361",
+  "feedback_channel_id": "488440534449258527",
+  "demos_channel_id": "713113017302253608",
+  "event_stage_channel_id": "1037550048294223872",
+  "event_stream_channel_id": "691009984418414602",
+  "event_chat_channel_id": "807035168404930572",
+  "hangout_room_id": "543600804180000788",
   "roles": 
     {
-      "online_role": "1015751167470473311",
-      "Admin": "1015751167529201692"
+      "online_role": "631849829026496543",
+      "Admin": "804392934484606977"
     },
   "youtube_channels": [
     {
