@@ -4,6 +4,7 @@ import (
 	"chillbot/internal/bot"
 	"errors"
 	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -18,15 +19,7 @@ func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 	m.Config = deps.Config
 	m.name = "AdminModule"
 
-	/*
-		err, _ :=
-			m.Bot.AddCommand(&discordgo.ApplicationCommand{
-				Name:        "admin",
-				Description: "admin command",
-			}, m.AdminTest, "Admin"),
-	*/
-
-	err, _ := m.Bot.AddCommand(&discordgo.ApplicationCommand{
+	err := m.Bot.AddCommand(&discordgo.ApplicationCommand{
 		Name:        "create_invite",
 		Description: "Create an invite URL for a channel",
 		Options: []*discordgo.ApplicationCommandOption{
@@ -55,43 +48,34 @@ func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 				Description: "Only grant temporary membership using invite",
 			},
 		},
-	}, m.InviteCreator, "Admin"),
-		m.Bot.AddCommand(&discordgo.ApplicationCommand{
-			Name:        "deletecmd",
-			Description: "Delete a command via ID",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "command_id",
-					Description: "Command ID to be deleted",
-					Required:    true,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionBoolean,
-					Name:        "guild_id",
-					Description: "Guild ID that command belongs to",
-					Required:    false,
-				},
-			},
-		}, m.DeleteCommand, "Admin")
+	}, m.InviteCreator, "Admin")
 
-	// bot.AddHandler(m.Bot, m.DeleteCommand)
+	err2 := m.Bot.AddCommand(&discordgo.ApplicationCommand{
+		Name:        "deletecmd",
+		Description: "Delete a command via ID",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "command_id",
+				Description: "Command ID to be deleted",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "guild_id",
+				Description: "Guild ID that command belongs to",
+				Required:    false,
+			},
+		},
+	}, m.DeleteCommand, "Admin")
+
+	err = errors.Join(err, err2)
 
 	return err
 }
 
 func (m *AdminModule) GetName() string {
 	return m.name
-}
-
-func (m *AdminModule) AdminTest(i *discordgo.InteractionCreate) error {
-	err := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "im an admin command!",
-		},
-	})
-	return err
 }
 
 func (m *AdminModule) InviteCreator(i *discordgo.InteractionCreate) error {
