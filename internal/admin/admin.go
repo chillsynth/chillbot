@@ -67,7 +67,7 @@ func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 					Required:    true,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionString,
+					Type:        discordgo.ApplicationCommandOptionBoolean,
 					Name:        "guild_id",
 					Description: "Guild ID that command belongs to",
 					Required:    false,
@@ -120,7 +120,7 @@ func (m *AdminModule) InviteCreator(i *discordgo.InteractionCreate) error {
 
 func (m *AdminModule) DeleteCommand(i *discordgo.InteractionCreate) error {
 	var err error
-	if i.ApplicationCommandData().Options[1] == nil {
+	if i.ApplicationCommandData().Options[1].BoolValue() == false {
 		err = m.Bot.Discord.ApplicationCommandDelete(
 			m.Bot.Discord.State.User.ID,
 			"",
@@ -128,9 +128,15 @@ func (m *AdminModule) DeleteCommand(i *discordgo.InteractionCreate) error {
 	} else {
 		err = m.Bot.Discord.ApplicationCommandDelete(
 			m.Bot.Discord.State.User.ID,
-			i.ApplicationCommandData().Options[1].StringValue(),
+			i.GuildID,
 			i.ApplicationCommandData().Options[0].StringValue())
 	}
-
+	err2 := m.Bot.Discord.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("Deleted command ID: %s", i.ApplicationCommandData().Options[0].StringValue()),
+		},
+	})
+	err = errors.Join(err, err2)
 	return err
 }
