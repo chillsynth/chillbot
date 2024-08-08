@@ -1,5 +1,5 @@
 {
-  "environment": "dev",
+  "environment": "prod",
   "guild_id": "488405912659427358",
   "lounge_channel_id": "488405912659427361",
   "feedback_channel_id": "488440534449258527",
