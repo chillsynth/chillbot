@@ -33,5 +33,3 @@ tmp/
 
 .DS_Store
 /.idea
-
-config.local.json
