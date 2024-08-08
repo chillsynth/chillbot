@@ -120,7 +120,7 @@ func (m *AdminModule) InviteCreator(i *discordgo.InteractionCreate) error {
 
 func (m *AdminModule) DeleteCommand(i *discordgo.InteractionCreate) error {
 	var err error
-	if i.ApplicationCommandData().Options[1] != nil {
+	if i.ApplicationCommandData().Options[1] == nil {
 		err = m.Bot.Discord.ApplicationCommandDelete(
 			m.Bot.Discord.State.User.ID,
 			"",
