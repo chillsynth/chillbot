@@ -66,6 +66,12 @@ func (m *AdminModule) Load(deps *bot.CommonDeps) error {
 					Description: "Command ID to be deleted",
 					Required:    true,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "guild_id",
+					Description: "Guild ID that command belongs to",
+					Required:    false,
+				},
 			},
 		}, m.DeleteCommand, "Admin")
 
@@ -113,6 +119,18 @@ func (m *AdminModule) InviteCreator(i *discordgo.InteractionCreate) error {
 }
 
 func (m *AdminModule) DeleteCommand(i *discordgo.InteractionCreate) error {
-	err := m.Bot.Discord.ApplicationCommandDelete(m.Bot.Discord.State.User.ID, "", i.ApplicationCommandData().Options[0].StringValue())
+	var err error
+	if i.ApplicationCommandData().Options[1] != nil {
+		err = m.Bot.Discord.ApplicationCommandDelete(
+			m.Bot.Discord.State.User.ID,
+			"",
+			i.ApplicationCommandData().Options[0].StringValue())
+	} else {
+		err = m.Bot.Discord.ApplicationCommandDelete(
+			m.Bot.Discord.State.User.ID,
+			i.ApplicationCommandData().Options[1].StringValue(),
+			i.ApplicationCommandData().Options[0].StringValue())
+	}
+
 	return err
 }
