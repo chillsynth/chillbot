@@ -40,8 +40,8 @@ func getReaction(r map[string]config.Reaction) (string, config.Reaction) {
 }
 
 func wordIsInMessage(msg string, word string) bool {
-	var lowerMsg := strings.ToLower(msg) string
-	var lowerWord := strings.ToLower(word) string
+	var lowerMsg := strings.ToLower(msg)
+	var lowerWord := strings.ToLower(word)
 
 	return lowerMsg == lowerWord || 
 		strings.HasPrefix( lowerMsg, lowerWord + " " ) || 
