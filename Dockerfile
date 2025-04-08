@@ -1,4 +1,4 @@
-FROM golang:latest as build
+FROM golang:1.24-apline as build
 
 WORKDIR /usr/src/app
 
