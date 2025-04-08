@@ -40,10 +40,13 @@ func getReaction(r map[string]config.Reaction) (string, config.Reaction) {
 }
 
 func wordIsInMessage(msg string, word string) bool {
-	return strings.ToLower(msg) == strings.ToLower(word) || 
-		strings.HasPrefix( strings.ToLower(msg), strings.ToLower(word) + " " ) || 
-		strings.HasSuffix( strings.ToLower(msg), " " + strings.ToLower(word) ) || 
-		strings.Contains( strings.ToLower(msg), " " + strings.ToLower(word) + " " )
+	var lowerMsg := strings.ToLower(msg) string
+	var lowerWord := strings.ToLower(word) string
+
+	return lowerMsg == lowerWord || 
+		strings.HasPrefix( lowerMsg, lowerWord + " " ) || 
+		strings.HasSuffix( lowerMsg, " " + lowerWord ) || 
+		strings.Contains( lowerMsg, " " + lowerWord + " " )
 }
 
 func (m *ReactorModule) React(msg *discordgo.MessageCreate) error {
