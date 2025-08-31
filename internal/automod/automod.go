@@ -20,7 +20,9 @@ func (m *AutoModule) Load(deps *bot.CommonDeps) error {
 
 	bot.AddHandler(m.Bot, m.MessageCheck)
 
-	return nil
+	err := m.SetupInstantBanButton()
+
+	return err
 }
 
 func (m *AutoModule) GetName() string {
