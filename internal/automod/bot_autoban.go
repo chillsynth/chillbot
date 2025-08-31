@@ -70,6 +70,11 @@ func (m *AutoModule) SetupInstantBanButton() error {
 				m.Bot.HandleError(fmt.Errorf("acknowledge interaction: %w", err))
 			}
 
+			// staff is immune
+			if m.Bot.IsMemberMod(i.Member) || m.Bot.IsMemberAdmin(i.Member) {
+				return
+			}
+
 			// GET BANNED
 			err = m.Bot.Discord.GuildBanCreateWithReason(i.GuildID, i.Member.User.ID, "Suspected bot", 7, discordgo.WithRetryOnRatelimit(true))
 
