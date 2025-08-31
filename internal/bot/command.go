@@ -29,6 +29,10 @@ func (b *Bot) RegisterCommandHandler() {
 	b.Discord.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		var err error
 
+		if i.Type != discordgo.InteractionApplicationCommand {
+			return
+		}
+
 		if h, ok := b.CommandHandlers[i.ApplicationCommandData().Name]; ok {
 			if b.DoesMemberHaveAnyRoles(i.Member.Roles, b.Commands[i.ApplicationCommandData().Name].RequiredRoles) {
 				err = h(i)

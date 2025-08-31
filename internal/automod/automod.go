@@ -2,9 +2,7 @@ package automoderator
 
 import (
 	"chillbot/internal/bot"
-	"errors"
 	"fmt"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -22,54 +20,34 @@ func (m *AutoModule) Load(deps *bot.CommonDeps) error {
 
 	bot.AddHandler(m.Bot, m.MessageCheck)
 
-	return nil
+	err := m.SetupInstantBanButton()
+
+	return err
 }
 
 func (m *AutoModule) GetName() string {
 	return m.name
 }
 
-func (m *AutoModule) DemosSendTempMessage(s *discordgo.Session, msg *discordgo.Message, channelID string, userID string, duration time.Duration) error {
-	// Send the automod message first
-	var err error
-	msg, err = s.ChannelMessageSend(channelID, fmt.Sprintf("<@%s>, this channel is for uploading files **only**.", userID))
-	if err != nil {
-		m.Logger.LogError(err)
-		return nil
-	}
-
-	// Start a goroutine to delete the message after the specified duration
-	go func() {
-		time.Sleep(duration * time.Second)
-		err = s.ChannelMessageDelete(channelID, msg.ID)
-		if err != nil {
-			m.Logger.LogError(err)
-		}
-	}()
-
-	return err
-}
-
 func (m *AutoModule) MessageCheck(msg *discordgo.MessageCreate) error {
 	var err error
 	if msg.Author.Bot { // Ignore message if sent by the bot
 		return fmt.Errorf("debug %s: ignoring bot-sent message in #demos", m.name)
-	} else {
-		if msg.ChannelID == m.Config.DemosChannelID { // If message sent in #demos, allow ONLY attachments
-			if msg.Content != "" {
-				m.Logger.LogInfo(fmt.Sprintf("%s: UserID:%s(%s) tried to send text in #demos.",
-					m.name, msg.Author.ID, msg.Author.GlobalName))
-				err = m.Bot.Discord.ChannelMessageDelete(msg.ChannelID, msg.ID)
-				err2 := m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
-				err = errors.Join(err, err2)
-			} else if len(msg.StickerItems) != 0 {
-				m.Logger.LogInfo(fmt.Sprintf("%s: UserID:%s(%s) tried to send sticker in #demos.",
-					m.name, msg.Author.ID, msg.Author.GlobalName))
-				err = m.Bot.Discord.ChannelMessageDelete(msg.ChannelID, msg.ID)
-				err2 := m.DemosSendTempMessage(m.Bot.Discord, msg.Message, msg.ChannelID, msg.Author.ID, 5)
-				err = errors.Join(err, err2)
-			}
-		}
 	}
+
+	// staff is immune
+	if m.Bot.IsMemberMod(msg.Member) || m.Bot.IsMemberAdmin(msg.Member) {
+		return nil
+	}
+
+	switch msg.ChannelID {
+	case m.Config.DemosChannelID:
+		err = m.DemosChannelModeration(msg)
+	case m.Config.InstantBanChannelId:
+		err = m.BotAutoBanner(msg)
+	default:
+		return nil
+	}
+
 	return err
 }

@@ -16,6 +16,7 @@ type Config struct {
 	EventStreamChannelId string            `json:"event_stream_channel_id"`
 	EventChatChannelId   string            `json:"event_chat_channel_id"`
 	HangoutRoomId        string            `json:"hangout_room_id"`
+	InstantBanChannelId  string            `json:"instant_ban_channel_id"`
 	YoutubeChannels      []YoutubeChannel  `json:"youtube_channels"`
 	Roles                map[string]string `json:"roles"`
 	Reactions            Reactions         `json:"reactions"`
