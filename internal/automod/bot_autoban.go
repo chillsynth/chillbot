@@ -15,7 +15,7 @@ func (m *AutoModule) BotAutoBanner(msg *discordgo.MessageCreate) error {
 		return fmt.Errorf("delete bot message: %w", err)
 	}
 
-	err = m.Bot.Discord.GuildBanCreateWithReason(msg.GuildID, msg.Author.ID, "Suspected bot", 7, discordgo.WithRetryOnRatelimit(true))
+	err = m.Bot.Discord.GuildBanCreateWithReason(msg.GuildID, msg.Author.ID, "Suspected bot: #avoid-this sent message", 7, discordgo.WithRetryOnRatelimit(true))
 
 	if err != nil {
 		return fmt.Errorf("guild ban bot: %w", err)
@@ -76,7 +76,7 @@ func (m *AutoModule) SetupInstantBanButton() error {
 			}
 
 			// GET BANNED
-			err = m.Bot.Discord.GuildBanCreateWithReason(i.GuildID, i.Member.User.ID, "Suspected bot", 7, discordgo.WithRetryOnRatelimit(true))
+			err = m.Bot.Discord.GuildBanCreateWithReason(i.GuildID, i.Member.User.ID, "Suspected bot: #avoid-this clicked button", 7, discordgo.WithRetryOnRatelimit(true))
 
 			if err != nil {
 				m.Bot.HandleError(fmt.Errorf("ban user from ban button interaction: %w", err))
