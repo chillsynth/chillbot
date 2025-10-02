@@ -3,11 +3,11 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'chillbot-prod'
+app = 'chillbot-develop'
 primary_region = 'iad'
 
 [env]
-  ENV = "prod"
+  ENV = "dev"
 
 [build]
 
