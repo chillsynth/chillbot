@@ -49,7 +49,7 @@ func (m *GreetingsModule) GreetVerifiedUser(g *discordgo.GuildMemberUpdate) erro
 				"### <:Discord_Invite:1140057489941995650> Head over to <#%s> to grab your roles \n"+
 					"### <:Discord_Message_SpeakTTS:1140059207106826271> "+
 					"And remember to **`GIVE`** <#%s> __before__ you **`ASK`** for it!",
-				m.Config.LoungeChannelID,
+				m.Config.GetRolesChannelID,
 				m.Config.FeedbackChannelID),
 			Color: 13281772,
 			Footer: &discordgo.MessageEmbedFooter{

@@ -2,6 +2,7 @@
   "environment": "dev",
   "guild_id": "1015751167470473306",
   "lounge_channel_id": "1015751168409997395",
+  "get_roles_channel_id": "1015751168242221061",
   "feedback_channel_id": "1015751168552620096",
   "demos_channel_id": "1015751168552620097",
   "event_stage_channel_id": "1020414105519149118",
