@@ -9,6 +9,8 @@
   "event_chat_channel_id": "807035168404930572",
   "hangout_room_id": "543600804180000788",
   "instant_ban_channel_id": "1411480170639917219",
+  "modbot_channel_id": "",
+  "min_account_age_days": 1,
   "roles": 
     {
       "online_role": "631849829026496543",

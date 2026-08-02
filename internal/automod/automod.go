@@ -19,6 +19,7 @@ func (m *AutoModule) Load(deps *bot.CommonDeps) error {
 	m.name = "AutoModule"
 
 	bot.AddHandler(m.Bot, m.MessageCheck)
+	bot.AddHandler(m.Bot, m.AccountAgeCheck)
 
 	err := m.SetupInstantBanButton()
 
